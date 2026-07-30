@@ -1,4 +1,4 @@
-# Shadow Tool ☀
+# Shadow Tool
 
 A small bench lab for CSS shadows. Design layered `box-shadow`, `filter: drop-shadow()` and `text-shadow` by dragging a sun around the stage, then steal the CSS.
 
