@@ -461,7 +461,7 @@
 
       .stage {
         position: relative;
-        height: clamp(440px, 74vh, 900px);
+        height: clamp(500px, 82vh, 1040px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -580,9 +580,9 @@
         color: var(--ink);
       }
       .out pre {
-        padding: 12px 18px 14px;
+        padding: 10px 18px 12px;
         overflow: auto;
-        font: 12px/1.65 var(--mono);
+        font: 11.5px/1.6 var(--mono);
         color: var(--ink);
         tab-size: 2;
       }
@@ -601,9 +601,10 @@
         vertical-align: baseline;
         outline: 1px solid rgba(255, 255, 255, 0.18);
       }
-      #bCopy {
+      #bShare {
         margin-left: auto;
       }
+      #bShare.done,
       #bCopy.done {
         border-color: var(--amber);
         color: var(--amber);
@@ -666,6 +667,7 @@
         flex: 1;
         min-width: 0;
         font: 11.5px var(--mono);
+        letter-spacing: 0.02em;
         color: var(--mut);
         white-space: nowrap;
         overflow: hidden;
@@ -1044,6 +1046,13 @@
                   Tailwind
                 </button>
               </div>
+              <button
+                class="btn tip"
+                id="bShare"
+                data-tip="copy a shareable link with this shadow encoded in it"
+              >
+                Copy link
+              </button>
               <button class="btn tip" id="bCopy" data-tip="copy to clipboard">
                 Copy
               </button>
@@ -1821,17 +1830,23 @@
         el.innerHTML =
           S.layers
             .map((l, i) => {
-              const pct = Math.round(l.alpha * 100) + "%";
-              const meta = l.follow
-                ? `☀ ${l.dist} · blur ${rnd1(l.blur)} · ${pct}`
-                : `${rnd1(l.x)}, ${rnd1(l.y)} · blur ${rnd1(l.blur)} · ${pct}`;
+              const off = l.follow ? Math.abs(l.dist) : Math.hypot(l.x, l.y);
+              const kind = l.inset
+                ? "Inset"
+                : off === 0
+                  ? l.blur < 1
+                    ? "Ring"
+                    : "Glow"
+                  : l.blur < 1
+                    ? "Hard"
+                    : "Soft";
+              const meta = `Layer ${i + 1} - ${kind} ${Math.round(l.alpha * 100)}%`;
               return `<div class="lrow${i === S.sel ? " sel" : ""}${l.on ? " on" : " hid"}" data-i="${i}">
       <button class="ico eye tip" data-act="eye" data-i="${i}" data-tip="${l.on ? "hide" : "show"} layer" aria-label="${l.on ? "Hide" : "Show"} layer ${i + 1}" aria-pressed="${l.on}">${l.on ? I.eye : I.eyeOff}</button>
       <button class="lbody" data-act="sel" data-i="${i}" aria-label="Select layer ${i + 1}">
         <span class="sw" style="background:${l.color}"></span>
         <span class="lm">${meta}</span>
       </button>
-      ${l.inset && S.mode === "box" ? '<span class="badge">in</span>' : ""}
       <span class="lops">
         <button class="ico" data-act="up" data-i="${i}" aria-label="Move layer ${i + 1} up" ${i === 0 ? "disabled" : ""}>${I.up}</button>
         <button class="ico" data-act="down" data-i="${i}" aria-label="Move layer ${i + 1} down" ${i === S.layers.length - 1 ? "disabled" : ""}>${I.down}</button>
@@ -2227,13 +2242,11 @@
         live.textContent = `Preset ${PRESETS[+b.dataset.p].name} applied`;
       });
 
-      /* copy */
-      $("bCopy").addEventListener("click", async () => {
-        const text = outputText();
-        let ok = false;
+      /* copy & share */
+      async function copyText(text) {
         try {
           await navigator.clipboard.writeText(text);
-          ok = true;
+          return true;
         } catch (e) {
           const ta = document.createElement("textarea");
           ta.value = text;
@@ -2241,19 +2254,63 @@
           ta.style.opacity = "0";
           document.body.appendChild(ta);
           ta.select();
+          let ok = false;
           try {
             ok = document.execCommand("copy");
           } catch (e2) {}
           ta.remove();
+          return ok;
         }
-        const b = $("bCopy");
-        b.textContent = ok ? "Copied ✓" : "Select & copy";
-        b.classList.add("done");
-        live.textContent = ok ? "CSS copied to clipboard" : "Copy failed";
+      }
+      function flash(btn, okText, idleText, ok) {
+        btn.textContent = ok ? okText : "Copy failed";
+        btn.classList.add("done");
         setTimeout(() => {
-          b.textContent = "Copy";
-          b.classList.remove("done");
+          btn.textContent = idleText;
+          btn.classList.remove("done");
         }, 1400);
+      }
+      $("bCopy").addEventListener("click", async () => {
+        const ok = await copyText(outputText());
+        flash($("bCopy"), "Copied ✓", "Copy", ok);
+        live.textContent = ok ? "CSS copied to clipboard" : "Copy failed";
+      });
+
+      // state <-> base64url for shareable #s= links
+      function encodeState() {
+        const bin = encodeURIComponent(JSON.stringify(S)).replace(
+          /%([0-9A-F]{2})/g,
+          (m, p) => String.fromCharCode(parseInt(p, 16)),
+        );
+        return btoa(bin)
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+      }
+      function decodeState(h) {
+        try {
+          const bin = atob(h.replace(/-/g, "+").replace(/_/g, "/"));
+          const json = decodeURIComponent(
+            bin
+              .split("")
+              .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+              .join(""),
+          );
+          const d = JSON.parse(json);
+          if (!d || !Array.isArray(d.layers) || !d.layers.length) return false;
+          S = Object.assign(DEFAULTS(), d);
+          S.light = Object.assign({ a: -135 * DEG, d: 0.5 }, d.light);
+          S.scene = Object.assign(DEFAULTS().scene, d.scene);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      $("bShare").addEventListener("click", async () => {
+        const link = location.href.split("#")[0] + "#s=" + encodeState();
+        const ok = await copyText(link);
+        flash($("bShare"), "Link ✓", "Copy link", ok);
+        live.textContent = ok ? "Share link copied" : "Copy failed";
       });
 
       /* ============================== random ============================== */
@@ -2419,7 +2476,16 @@
       });
 
       /* ============================== init ============================== */
-      if (!load()) PRESETS[1].make(); // start on Mid
+      let booted = false;
+      const hashMatch = location.hash.match(/^#s=(.+)$/);
+      if (hashMatch) {
+        booted = decodeState(hashMatch[1]);
+        try {
+          // consume the hash so the URL is clean again
+          history.replaceState(null, "", location.pathname + location.search);
+        } catch (e) {}
+      }
+      if (!booted && !load()) PRESETS[1].make(); // start on Mid
       update();
     </script>
   </body>
