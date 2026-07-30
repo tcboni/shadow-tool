@@ -1,0 +1,2489 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shadow Tool — a bench lab for CSS shadows</title>
+    <meta
+      name="description"
+      content="Shadow Tool: design layered box-shadows, drop-shadows and text-shadows with a draggable light source. One file, zero dependencies."
+    />
+    <link
+      id="favicon"
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2317140f'/%3E%3Crect%20x='14'%20y='14'%20width='12'%20height='12'%20rx='3'%20fill='%234a3d28'/%3E%3Crect%20x='9'%20y='9'%20width='12'%20height='12'%20rx='3'%20fill='%23f0b83d'/%3E%3Ccircle%20cx='7'%20cy='7'%20r='2.6'%20fill='%23ffe9b8'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --bg: #141110;
+        --panel: #1b1714;
+        --panel2: #211c17;
+        --code: #0f0d0b;
+        --line: #2b251e;
+        --line2: #3d342a;
+        --ink: #e9e2d3;
+        --mut: #9c917d;
+        --dim: #6d6455;
+        --amber: #f0b83d;
+        --amber2: #ffd268;
+        --mono:
+          ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+          "Liberation Mono", monospace;
+        --disp:
+          "Avenir Next Condensed", "Helvetica Neue", "Arial Narrow", "Segoe UI",
+          system-ui, sans-serif;
+        --sans:
+          system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html {
+        background: #0d0b09;
+      }
+      body {
+        background-color: #0d0b09;
+        color: var(--ink);
+        font-family: var(--sans);
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.035) 1px,
+          transparent 1.5px
+        );
+        background-size: 22px 22px;
+      }
+      .shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px 48px;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      :focus-visible {
+        outline: 2px solid var(--amber2);
+        outline-offset: 2px;
+        border-radius: 2px;
+      }
+      .ico:focus-visible,
+      .lbody:focus-visible,
+      .otab:focus-visible {
+        outline-offset: -2px;
+      }
+      ::selection {
+        background: var(--amber);
+        color: #1a1510;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      /* ---------- css-only tooltips (anchor positioning) ---------- */
+      @supports (anchor-name: --a) {
+        .tip::after {
+          content: attr(data-tip);
+          position: fixed;
+          position-anchor: auto;
+          position-area: bottom;
+          position-try-fallbacks: flip-block, flip-inline;
+          margin: 7px;
+          width: max-content;
+          max-width: 230px;
+          background: #0c0a08;
+          color: var(--ink);
+          border: 1px solid var(--line2);
+          border-radius: 4px;
+          box-shadow: 0 6px 22px -6px rgba(0, 0, 0, 0.7);
+          padding: 6px 9px;
+          font: 11px/1.5 var(--mono);
+          font-weight: 400;
+          letter-spacing: 0;
+          text-transform: none;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.12s;
+          z-index: 99;
+          pointer-events: none;
+          white-space: normal;
+        }
+        .tip:hover::after,
+        .tip:focus-visible::after {
+          opacity: 1;
+          visibility: visible;
+        }
+      }
+
+      /* ---------- header ---------- */
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 2px 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--ink);
+      }
+      .wordmark {
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: 22px;
+        letter-spacing: 0.08em;
+      }
+      .wordmark em {
+        font-style: normal;
+        color: var(--amber);
+      }
+      .tag {
+        font:
+          italic 13px/1.3 Georgia,
+          "Times New Roman",
+          serif;
+        color: var(--mut);
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .topbtns {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn {
+        font: 600 11px/1 var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--mut);
+        border: 1px solid var(--line2);
+        padding: 8px 12px;
+        border-radius: 3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+        background: transparent;
+      }
+      .btn:hover:not(:disabled) {
+        color: var(--ink);
+        border-color: var(--amber);
+      }
+      .btn svg {
+        display: block;
+      }
+      .gh {
+        color: var(--mut);
+        display: flex;
+        padding: 6px;
+        border-radius: 3px;
+      }
+      .gh:hover {
+        color: var(--ink);
+      }
+
+      /* ---------- layout: 2 columns ---------- */
+      .app {
+        display: grid;
+        gap: 1px;
+        background: var(--line);
+        grid-template-columns: minmax(0, 1fr) 364px;
+        grid-template-areas: "M R";
+        border: 1px solid var(--line);
+      }
+      .col {
+        background: var(--bg);
+        min-width: 0;
+      }
+      .colM {
+        grid-area: M;
+        display: flex;
+        flex-direction: column;
+      }
+      .colR {
+        grid-area: R;
+      }
+      .colM .out {
+        flex: 1;
+      }
+
+      .panel {
+        border-bottom: 1px solid var(--line);
+        padding: 16px 18px 20px;
+      }
+      .ph {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 14px;
+        font: 600 11px/1 var(--mono);
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--mut);
+      }
+      .ph b {
+        color: var(--amber);
+        font-weight: 600;
+      }
+      .hint {
+        font:
+          italic 11.5px/1.5 Georgia,
+          serif;
+        color: var(--dim);
+        margin-top: 10px;
+      }
+
+      /* ---------- controls ---------- */
+      .ctl {
+        display: block;
+        margin: 11px 0;
+      }
+      .ck {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 2px;
+        font: 500 11px/1.4 var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--mut);
+      }
+      .ck output {
+        color: var(--ink);
+        letter-spacing: 0;
+        font-size: 12px;
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 20px;
+        background: transparent;
+        cursor: ew-resize;
+        background-image: repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.055) 0 1px,
+          transparent 1px 10.5px
+        );
+        background-size: 100% 8px;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 2px;
+        background: var(--line2);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 5px;
+        height: 18px;
+        margin-top: -8px;
+        background: var(--amber);
+        border-radius: 1px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      input[type="range"]::-moz-range-track {
+        height: 2px;
+        background: var(--line2);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 5px;
+        height: 18px;
+        background: var(--amber);
+        border: 0;
+        border-radius: 1px;
+      }
+      input[type="range"]:hover::-webkit-slider-thumb {
+        background: var(--amber2);
+      }
+      input[type="color"] {
+        width: 34px;
+        height: 25px;
+        padding: 1px;
+        border: 1px solid var(--line2);
+        border-radius: 3px;
+        background: none;
+        cursor: pointer;
+      }
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 1px;
+      }
+      input[type="color"]::-webkit-color-swatch {
+        border: 0;
+        border-radius: 2px;
+      }
+      input[type="color"]::-moz-color-swatch {
+        border: 0;
+        border-radius: 2px;
+      }
+      input[type="text"] {
+        font: 12.5px var(--mono);
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--line2);
+        border-radius: 3px;
+        padding: 7px 9px;
+      }
+      select {
+        font: 12px var(--mono);
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--line2);
+        border-radius: 3px;
+        padding: 6px 7px;
+        cursor: pointer;
+      }
+      .inline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .lightrow {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .lightcol {
+        flex: 1;
+        min-width: 0;
+      }
+      .knob {
+        width: 66px;
+        height: 66px;
+        border-radius: 50%;
+        border: 1px solid var(--line2);
+        background: var(--code);
+        padding: 0;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+      }
+      .knob:active {
+        cursor: grabbing;
+      }
+      .knob:focus-visible {
+        outline-offset: 2px;
+        border-radius: 50%;
+      }
+      .knob svg {
+        display: block;
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 12px 0 2px;
+        cursor: pointer;
+        font: 500 11px/1 var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--mut);
+      }
+      .check input {
+        accent-color: var(--amber);
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+      }
+      .off {
+        opacity: 0.32;
+        pointer-events: none;
+      }
+
+      /* ---------- toolbar + stage ---------- */
+      .stagebar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+      }
+      .seg {
+        display: inline-flex;
+        gap: 2px;
+        border: 1px solid var(--line2);
+        border-radius: 5px;
+        padding: 3px;
+        background: var(--code);
+      }
+      .seg button {
+        font: 600 11px/1 var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--mut);
+        padding: 7px 13px;
+        border-radius: 3px;
+      }
+      .seg button:hover {
+        color: var(--ink);
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--amber);
+        color: #1a1409;
+      }
+      .seg button:focus-visible {
+        outline-offset: -2px;
+      }
+      .tlabel {
+        font: 500 10px var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      .readout {
+        font: 11.5px var(--mono);
+        color: var(--mut);
+        margin-left: auto;
+        white-space: nowrap;
+      }
+      .readout b {
+        color: var(--amber);
+        font-weight: 600;
+      }
+      #inText {
+        width: 110px;
+      }
+
+      .stage {
+        position: relative;
+        height: clamp(380px, 64vh, 760px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: crosshair;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        overflow: hidden;
+      }
+      .corner {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border: 1px solid rgba(0, 0, 0, 0.28);
+        pointer-events: none;
+      }
+      .stage.darkc .corner {
+        border-color: rgba(255, 255, 255, 0.28);
+      }
+      .c-tl {
+        top: 10px;
+        left: 10px;
+        border-right: 0;
+        border-bottom: 0;
+      }
+      .c-tr {
+        top: 10px;
+        right: 10px;
+        border-left: 0;
+        border-bottom: 0;
+      }
+      .c-bl {
+        bottom: 10px;
+        left: 10px;
+        border-right: 0;
+        border-top: 0;
+      }
+      .c-br {
+        bottom: 10px;
+        right: 10px;
+        border-left: 0;
+        border-top: 0;
+      }
+      .ray {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      #subject {
+        position: relative;
+        z-index: 1;
+        pointer-events: none;
+        max-width: 86%;
+      }
+      #subject svg {
+        display: block;
+      }
+      .sun {
+        position: absolute;
+        z-index: 3;
+        width: 34px;
+        height: 34px;
+        margin: 0;
+        border-radius: 50%;
+        cursor: grab;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #f7c95c;
+        background: radial-gradient(
+          circle at 38% 34%,
+          #fff3d0,
+          #f0b83d 62%,
+          #d99a1e
+        );
+        box-shadow:
+          0 0 22px 5px rgba(255, 196, 80, 0.4),
+          0 1px 4px rgba(0, 0, 0, 0.4);
+      }
+      .sun:active {
+        cursor: grabbing;
+      }
+      .sun svg {
+        pointer-events: none;
+      }
+
+      /* ---------- output ---------- */
+      .out {
+        border-top: 1px solid var(--line);
+        background: var(--code);
+      }
+      .outbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .otabs {
+        display: flex;
+        gap: 2px;
+      }
+      .otab {
+        font: 600 11px/1 var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--dim);
+        padding: 7px 9px;
+        border-radius: 3px;
+      }
+      .otab[aria-pressed="true"] {
+        color: var(--amber);
+      }
+      .otab:hover {
+        color: var(--ink);
+      }
+      .out pre {
+        padding: 14px 18px 18px;
+        overflow: auto;
+        font: 12.5px/1.8 var(--mono);
+        color: var(--ink);
+        tab-size: 2;
+      }
+      .tn {
+        color: var(--amber2);
+      }
+      .tu {
+        color: var(--mut);
+      }
+      .tc i {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        margin: 0 5px 0 1px;
+        vertical-align: baseline;
+        outline: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      #bCopy {
+        margin-left: auto;
+      }
+      #bCopy.done {
+        border-color: var(--amber);
+        color: var(--amber);
+      }
+
+      /* ---------- layers ---------- */
+      .llist {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .llist {
+        gap: 6px;
+      }
+      .lrow {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--panel);
+        padding-right: 5px;
+      }
+      .lrow.sel {
+        border-color: var(--amber);
+      }
+      .lrow.hid .lbody {
+        opacity: 0.35;
+      }
+      .ico {
+        padding: 8px 6px;
+        color: var(--dim);
+        display: flex;
+        flex: none;
+        border-radius: 2px;
+      }
+      .ico:hover:not(:disabled) {
+        color: var(--ink);
+      }
+      .lrow.on .eye {
+        color: var(--mut);
+      }
+      .lbody {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 5px 9px 0;
+        text-align: left;
+      }
+      .sw {
+        width: 15px;
+        height: 15px;
+        border-radius: 3px;
+        flex: none;
+        outline: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .lm {
+        flex: 1;
+        min-width: 0;
+        font: 11.5px var(--mono);
+        color: var(--mut);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .lrow.sel .lm {
+        color: var(--ink);
+      }
+      .badge {
+        font: 600 9.5px var(--mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--amber);
+        border: 1px solid var(--line2);
+        border-radius: 2px;
+        padding: 2px 5px;
+        flex: none;
+      }
+      .lops {
+        display: flex;
+        flex: none;
+        align-items: center;
+      }
+      #bAdd {
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+      }
+      .linkchip {
+        margin: 2px 0 6px;
+      }
+      .linkchip[aria-pressed="true"] {
+        border-color: var(--amber);
+        color: var(--amber);
+      }
+      #layerPanel.none > *:not(.ph):not(.hint) {
+        display: none;
+      }
+
+      /* ---------- presets ---------- */
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        border: 1px solid var(--line2);
+        border-radius: 4px;
+        padding: 7px 11px 7px 8px;
+        font: 600 11px/1 var(--mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--mut);
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .chip:hover {
+        border-color: var(--amber);
+        color: var(--ink);
+      }
+      .chip i {
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        flex: none;
+      }
+
+      /* ---------- responsive ---------- */
+      @media (max-width: 900px) {
+        .app {
+          grid-template-columns: 1fr;
+          grid-template-areas: "M" "R";
+        }
+        .tag {
+          display: none;
+        }
+        .shell {
+          padding: 0 10px 32px;
+        }
+        .top {
+          flex-wrap: wrap;
+          gap: 10px;
+          padding: 14px 2px 12px;
+        }
+        .wordmark {
+          font-size: 18px;
+        }
+        .topbtns {
+          margin-left: auto;
+        }
+        .stage {
+          height: min(60vw, 440px);
+        }
+        .readout {
+          width: 100%;
+          margin-left: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="top">
+        <a class="brand" href="#" aria-label="Shadow Tool home">
+          <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+            <rect
+              id="logoShadow"
+              x="14"
+              y="14"
+              width="12"
+              height="12"
+              rx="3"
+              fill="#3d3324"
+            />
+            <rect x="9" y="9" width="12" height="12" rx="3" fill="#f0b83d" />
+            <circle id="logoSun" cx="7" cy="7" r="2.6" fill="#ffe9b8" />
+          </svg>
+          <span class="wordmark">SHADOW<em>&nbsp;TOOL</em></span>
+        </a>
+        <p class="tag">
+          a small bench lab for light &amp; shadow — drag the sun, stack the
+          layers, steal the css.
+        </p>
+        <div class="topbtns">
+          <button
+            class="btn tip"
+            id="bUndo"
+            data-tip="undo (⌘Z)"
+            aria-label="Undo"
+            disabled
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6.5 3.5L3 7l3.5 3.5" />
+              <path d="M3 7h6a4 4 0 0 1 0 8H7" />
+            </svg>
+          </button>
+          <button
+            class="btn tip"
+            id="bRedo"
+            data-tip="redo (⇧⌘Z)"
+            aria-label="Redo"
+            disabled
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9.5 3.5L13 7l-3.5 3.5" />
+              <path d="M13 7H7a4 4 0 0 0 0 8h2" />
+            </svg>
+          </button>
+          <button
+            class="btn tip"
+            id="bRandom"
+            data-tip="roll a fresh, tasteful shadow — or press R"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <rect
+                x="1"
+                y="1"
+                width="14"
+                height="14"
+                rx="3"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              />
+              <circle cx="5.2" cy="5.2" r="1.5" />
+              <circle cx="8" cy="8" r="1.5" />
+              <circle cx="10.8" cy="10.8" r="1.5" />
+            </svg>
+            Random
+          </button>
+          <a
+            class="gh tip"
+            data-tip="source on github"
+            href="https://github.com/tcboni/gradient-tool"
+            target="_blank"
+            rel="noopener"
+            aria-label="Shadow Tool on GitHub"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <main class="app">
+        <!-- ============ LEFT: toolbar · stage · output ============ -->
+        <section class="col colM" aria-label="Preview and output">
+          <div class="stagebar">
+            <div class="seg" role="group" aria-label="Shadow target">
+              <button
+                data-mode="box"
+                class="tip"
+                data-tip="box-shadow on a card"
+                aria-pressed="true"
+              >
+                Box
+              </button>
+              <button
+                data-mode="drop"
+                class="tip"
+                data-tip="filter: drop-shadow() — follows transparency, holes and all"
+                aria-pressed="false"
+              >
+                Shape
+              </button>
+              <button
+                data-mode="text"
+                class="tip"
+                data-tip="text-shadow on live type"
+                aria-pressed="false"
+              >
+                Text
+              </button>
+            </div>
+            <span class="tlabel">bg</span>
+            <input
+              type="color"
+              id="inCanvas"
+              value="#e8e2d4"
+              class="tip"
+              data-tip="stage background"
+              aria-label="Stage background color"
+            />
+            <span class="tlabel" id="fillLabel">fill</span>
+            <input
+              type="color"
+              id="inElBg"
+              value="#faf7f0"
+              class="tip"
+              data-tip="subject color"
+              aria-label="Subject fill color"
+            />
+            <select
+              id="selFinish"
+              class="tip"
+              data-tip="a subtle surface gradient that stays lit toward the sun"
+              aria-label="Subject surface finish"
+            >
+              <option value="flat">flat</option>
+              <option value="convex">convex</option>
+              <option value="concave">concave</option>
+            </select>
+            <select id="selShape" hidden aria-label="Preview shape">
+              <option value="star">star</option>
+              <option value="bolt">bolt</option>
+              <option value="blob">blob</option>
+              <option value="ring">ring</option>
+            </select>
+            <input
+              type="text"
+              id="inText"
+              value="Umbra"
+              maxlength="18"
+              hidden
+              aria-label="Preview text"
+            />
+            <span class="readout" id="readLight"
+              >☀ <b>225°</b> · elev <b>50%</b> · throw ×<b>1.0</b></span
+            >
+          </div>
+
+          <div
+            class="stage"
+            id="stage"
+            aria-label="Preview stage. Click or drag to move the light source."
+          >
+            <span class="corner c-tl"></span><span class="corner c-tr"></span>
+            <span class="corner c-bl"></span><span class="corner c-br"></span>
+            <svg class="ray" id="raySvg" aria-hidden="true">
+              <line
+                id="rayLine"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="0"
+                stroke="currentColor"
+                stroke-dasharray="2 7"
+                stroke-width="1"
+                opacity="0.35"
+              />
+            </svg>
+            <div id="subject"></div>
+            <button
+              class="sun tip"
+              id="sun"
+              data-tip="the light. drag it — or arrow keys: ← → rotate, ↑ ↓ raise and lower (shift = fine)"
+              aria-label="Light source. Arrow keys: left and right rotate, up and down change elevation. Hold Shift for fine steps."
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#8a5d0e"
+                stroke-width="1.4"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="3.2"
+                  fill="#8a5d0e"
+                  stroke="none"
+                  opacity=".55"
+                />
+                <path
+                  d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M13 3l-1.4 1.4M4.4 11.6L3 13"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div class="out">
+            <div class="outbar">
+              <div class="otabs" role="group" aria-label="Output format">
+                <button
+                  class="otab tip"
+                  data-fmt="css"
+                  data-tip="plain css, ready to paste"
+                  aria-pressed="true"
+                >
+                  CSS
+                </button>
+                <button
+                  class="otab tip"
+                  data-fmt="var"
+                  data-tip="as a custom property + usage"
+                  aria-pressed="false"
+                >
+                  Custom prop
+                </button>
+                <button
+                  class="otab tip"
+                  data-fmt="tw"
+                  data-tip="tailwind arbitrary-value class"
+                  aria-pressed="false"
+                >
+                  Tailwind
+                </button>
+              </div>
+              <button class="btn tip" id="bCopy" data-tip="copy to clipboard">
+                Copy
+              </button>
+            </div>
+            <pre><code id="code"></code></pre>
+          </div>
+        </section>
+
+        <!-- ============ RIGHT: light · layers · layer · presets ============ -->
+        <section class="col colR" aria-label="Controls">
+          <div class="panel">
+            <h2 class="ph"><b>01</b> Light</h2>
+            <div class="lightrow">
+              <button
+                class="knob tip"
+                id="knob"
+                data-tip="the direction the light comes from — drag to rotate, arrow keys to nudge (shift = fine)"
+                role="slider"
+                aria-label="Light angle"
+                aria-valuemin="0"
+                aria-valuemax="360"
+                aria-valuenow="225"
+                aria-valuetext="225 degrees"
+              >
+                <svg
+                  viewBox="-32 -32 64 64"
+                  width="64"
+                  height="64"
+                  aria-hidden="true"
+                >
+                  <g id="knobTicks" stroke="#3d342a" stroke-width="1.5"></g>
+                  <line
+                    id="needle"
+                    x1="8"
+                    y1="0"
+                    x2="20"
+                    y2="0"
+                    stroke="#f0b83d"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                  <circle r="2.6" fill="#f0b83d" />
+                </svg>
+              </button>
+              <div class="lightcol">
+                <div class="ck">
+                  <span>Angle</span><output id="vAz">225°</output>
+                </div>
+                <label
+                  class="ctl tip"
+                  data-tip="how high the sun sits — 100% is high noon, shadows tuck underneath"
+                  style="margin: 9px 0 0"
+                >
+                  <span class="ck"
+                    ><span>Elevation</span><output id="vElev">50%</output></span
+                  >
+                  <input
+                    type="range"
+                    id="inElev"
+                    min="0"
+                    max="100"
+                    step="1"
+                    aria-label="Light elevation — higher means shorter shadows; 100 is high noon"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 class="ph"><b>02</b> Layers</h2>
+            <div class="llist" id="llist"></div>
+            <button class="btn" id="bAdd">+ Add layer</button>
+          </div>
+
+          <div class="panel" id="layerPanel">
+            <h2 class="ph">
+              <b>03</b> <span id="layerTitle">Layer 1 / 1</span>
+            </h2>
+            <button
+              class="btn linkchip tip"
+              id="bLink"
+              data-tip="linked layers follow the sun as one; unlink for manual x / y offsets"
+              aria-pressed="true"
+            >
+              ☀ linked to light
+            </button>
+            <label
+              class="ctl tip"
+              id="rowDist"
+              data-tip="how far this layer travels along the light axis — negative creeps toward the light"
+            >
+              <span class="ck"
+                ><span>Distance</span><output id="vLDist">24px</output></span
+              >
+              <input
+                type="range"
+                id="inLDist"
+                min="-120"
+                max="160"
+                step="1"
+                aria-label="Distance from subject along the light axis. Negative moves toward the light."
+              />
+            </label>
+            <label class="ctl" id="rowX" hidden>
+              <span class="ck"
+                ><span>Offset X</span><output id="vLX">0px</output></span
+              >
+              <input
+                type="range"
+                id="inLX"
+                min="-160"
+                max="160"
+                step="1"
+                aria-label="Horizontal offset"
+              />
+            </label>
+            <label class="ctl" id="rowY" hidden>
+              <span class="ck"
+                ><span>Offset Y</span><output id="vLY">0px</output></span
+              >
+              <input
+                type="range"
+                id="inLY"
+                min="-160"
+                max="160"
+                step="1"
+                aria-label="Vertical offset"
+              />
+            </label>
+            <label class="ctl">
+              <span class="ck"
+                ><span>Blur</span><output id="vLBlur">48px</output></span
+              >
+              <input
+                type="range"
+                id="inLBlur"
+                min="0"
+                max="220"
+                step="1"
+                aria-label="Blur radius"
+              />
+            </label>
+            <label
+              class="ctl tip"
+              id="rowSpread"
+              data-tip="grows or shrinks the shadow before blurring — negative tucks it under the subject"
+            >
+              <span class="ck"
+                ><span>Spread</span><output id="vLSpread">0px</output></span
+              >
+              <input
+                type="range"
+                id="inLSpread"
+                min="-60"
+                max="60"
+                step="1"
+                aria-label="Spread radius"
+              />
+            </label>
+            <label class="ctl">
+              <span class="ck"
+                ><span>Opacity</span><output id="vLAlpha">18%</output></span
+              >
+              <input
+                type="range"
+                id="inLAlpha"
+                min="0"
+                max="1"
+                step="0.01"
+                aria-label="Layer opacity"
+              />
+            </label>
+            <div class="inline">
+              <span class="ck" style="flex: 1"><span>Color</span></span>
+              <input
+                type="color"
+                id="inLCol"
+                value="#332b1f"
+                aria-label="Layer color"
+              />
+            </div>
+            <label
+              class="check tip"
+              id="rowInset"
+              data-tip="draws the shadow inside the subject instead of behind it"
+              ><input type="checkbox" id="inLInset" /> inset</label
+            >
+            <p class="hint" id="modeHint" hidden></p>
+          </div>
+
+          <div class="panel">
+            <h2 class="ph"><b>04</b> Presets</h2>
+            <div
+              class="chips"
+              id="chips"
+              role="group"
+              aria-label="Shadow presets"
+            ></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="sr" role="status" aria-live="polite" id="live"></div>
+
+    <script>
+      "use strict";
+      /* ============================== utils ============================== */
+      const $ = (id) => document.getElementById(id);
+      const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+      const rnd1 = (v) => {
+        const r = Math.round(v * 10) / 10;
+        return Object.is(r, -0) ? 0 : r;
+      };
+      const px = (v) => (v === 0 ? "0" : rnd1(v) + "px");
+      const esc = (s) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const DEG = Math.PI / 180;
+
+      // the input the pointer is currently held down on — the only one render must not write to
+      let held = null;
+      window.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (e.target instanceof HTMLInputElement) held = e.target;
+        },
+        true,
+      );
+      window.addEventListener(
+        "pointerup",
+        () => {
+          held = null;
+        },
+        true,
+      );
+      window.addEventListener(
+        "pointercancel",
+        () => {
+          held = null;
+        },
+        true,
+      );
+
+      function hexToRgb(h) {
+        h = h.replace("#", "");
+        if (h.length === 3)
+          h = h
+            .split("")
+            .map((c) => c + c)
+            .join("");
+        const n = parseInt(h, 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      }
+      const rgbToHex = (r, g, b) =>
+        "#" +
+        [r, g, b]
+          .map((v) =>
+            clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0"),
+          )
+          .join("");
+      function rgbToHsl(r, g, b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const mx = Math.max(r, g, b),
+          mn = Math.min(r, g, b),
+          l = (mx + mn) / 2;
+        if (mx === mn) return [0, 0, l];
+        const d = mx - mn,
+          s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+        let h;
+        if (mx === r) h = (g - b) / d + (g < b ? 6 : 0);
+        else if (mx === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        return [h * 60, s, l];
+      }
+      function hslToHex(h, s, l) {
+        h = (((h % 360) + 360) % 360) / 360;
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s,
+          p = 2 * l - q;
+        const f = (t) => {
+          t = ((t % 1) + 1) % 1;
+          if (t < 1 / 6) return p + (q - p) * 6 * t;
+          if (t < 1 / 2) return q;
+          if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+          return p;
+        };
+        return rgbToHex(f(h + 1 / 3) * 255, f(h) * 255, f(h - 1 / 3) * 255);
+      }
+      function shade(hex, amt) {
+        // amt -1..1 shifts lightness
+        const [r, g, b] = hexToRgb(hex),
+          [h, s, l] = rgbToHsl(r, g, b);
+        return hslToHex(h, s, clamp(l + amt, 0, 1));
+      }
+      function lum(hex) {
+        const [r, g, b] = hexToRgb(hex);
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      }
+      function inkFor(canvasHex) {
+        // a shadow color that belongs to the canvas hue
+        const [r, g, b] = hexToRgb(canvasHex),
+          [h, s] = rgbToHsl(r, g, b);
+        return hslToHex(h, Math.min(s * 0.9, 0.42), 0.15);
+      }
+      function cssColor(hex, alpha) {
+        if (alpha >= 1) return hex;
+        const [r, g, b] = hexToRgb(hex);
+        return `rgb(${r} ${g} ${b} / ${Math.round(alpha * 100) / 100})`;
+      }
+      function hex8(hex, alpha) {
+        return alpha >= 1
+          ? hex
+          : hex +
+              Math.round(alpha * 255)
+                .toString(16)
+                .padStart(2, "0");
+      }
+
+      /* ============================== state ============================== */
+      const DEFAULTS = () => ({
+        mode: "box", // box | drop | text
+        fmt: "css", // css | var | tw
+        light: { a: -135 * DEG, d: 0.5 }, // angle (rad, screen coords), 0..1 distance from zenith
+        scene: {
+          canvas: "#e8e2d4",
+          fill: "#faf7f0",
+          radius: 18,
+          w: 260,
+          h: 160,
+          font: 92,
+          text: "Umbra",
+          shape: "star",
+          finish: "flat",
+        },
+        layers: [],
+        sel: 0,
+      });
+      let S = DEFAULTS();
+
+      const STORE = "shadowtool.v2";
+      function save() {
+        try {
+          localStorage.setItem(STORE, JSON.stringify(S));
+        } catch (e) {}
+      }
+      function load() {
+        try {
+          const raw = localStorage.getItem(STORE);
+          if (!raw) return false;
+          const d = JSON.parse(raw);
+          if (!d || !Array.isArray(d.layers)) return false;
+          S = Object.assign(DEFAULTS(), d);
+          S.light = Object.assign({ a: -135 * DEG, d: 0.5 }, d.light);
+          S.scene = Object.assign(DEFAULTS().scene, d.scene);
+          return S.layers.length > 0;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function L(over) {
+        // layer factory
+        return Object.assign(
+          {
+            on: true,
+            follow: true,
+            dist: 12,
+            x: 0,
+            y: 0,
+            blur: 24,
+            spread: 0,
+            alpha: 0.18,
+            color: "#332b1f",
+            inset: false,
+          },
+          over,
+        );
+      }
+
+      /* ============================ shadow math ============================ */
+      const throwK = () => 0.05 + S.light.d * 1.95; // low sun → long throw; zenith → shadow tucks underneath
+      function layerVec(l) {
+        if (!l.follow) return { x: l.x, y: l.y };
+        const t = throwK();
+        return {
+          x: -Math.cos(S.light.a) * l.dist * t,
+          y: -Math.sin(S.light.a) * l.dist * t,
+        };
+      }
+      function activeLayers() {
+        return S.layers.filter((l) => l.on);
+      }
+
+      function layerCss(l, mode) {
+        const v = layerVec(l),
+          c = cssColor(l.color, l.alpha);
+        const o = `${px(v.x)} ${px(v.y)} ${px(l.blur)}`;
+        if (mode === "text") return `${o} ${c}`;
+        if (mode === "drop") return `drop-shadow(${o} ${c})`;
+        return `${l.inset ? "inset " : ""}${o} ${px(l.spread)} ${c}`;
+      }
+      function shadowValue(mode) {
+        const ls = activeLayers().map((l) => layerCss(l, mode));
+        if (!ls.length) return "none";
+        return ls.join(mode === "drop" ? " " : ", ");
+      }
+
+      /* ============================== output ============================== */
+      function outputText() {
+        const m = S.mode;
+        const prop =
+          m === "box" ? "box-shadow" : m === "text" ? "text-shadow" : "filter";
+        const ls = activeLayers().map((l) => layerCss(l, m));
+        const joined = ls.length
+          ? "\n  " + ls.join(m === "drop" ? "\n  " : ",\n  ")
+          : " none";
+        if (S.fmt === "css") return `${prop}:${joined};`;
+        if (S.fmt === "var") {
+          return `:root {\n  --shadow:${joined.replace(/\n/g, "\n  ")};\n}\n\n.your-element {\n  ${prop}: var(--shadow);\n}`;
+        }
+        // tailwind arbitrary value — underscores for spaces, hex8 colors
+        const tls = activeLayers().map((l) => {
+          const v = layerVec(l),
+            c = hex8(l.color, l.alpha);
+          const o = `${px(v.x)}_${px(v.y)}_${px(l.blur)}`;
+          if (m === "text") return `${o}_${c}`;
+          if (m === "drop") return `drop-shadow(${o}_${c})`;
+          return `${l.inset ? "inset_" : ""}${o}_${px(l.spread)}_${c}`;
+        });
+        if (!tls.length) return m === "box" ? "shadow-none" : "/* no layers */";
+        if (m === "box") return `shadow-[${tls.join(",")}]`;
+        if (m === "text") return `[text-shadow:${tls.join(",")}]`;
+        return `[filter:${tls.join("_")}]`;
+      }
+      function highlight(src) {
+        return esc(src)
+          .split(/(rgb\([^)]*\)|#[0-9a-fA-F]{3,8})/g)
+          .map((part, i) => {
+            if (i % 2)
+              return `<span class="tc"><i style="background:${part}"></i>${part}</span>`;
+            return part.replace(
+              /(-?\d+(?:\.\d+)?)(px|deg|%)?/g,
+              (m, n, u) =>
+                `<span class="tn">${n}</span>` +
+                (u ? `<span class="tu">${u}</span>` : ""),
+            );
+          })
+          .join("");
+      }
+
+      /* ============================== forge ============================== */
+      // builds a comeau-style cascade: distance & blur ease outward, opacity decays gently
+      function forge(o) {
+        const out = [];
+        if (o.contact)
+          out.push(
+            L({
+              dist: 1,
+              blur: 2,
+              alpha: clamp(o.alpha * 1.5, 0, 0.55),
+              color: o.color,
+            }),
+          );
+        for (let i = 1; i <= o.n; i++) {
+          const e = Math.pow(i / o.n, o.curve);
+          out.push(
+            L({
+              dist: Math.max(1, Math.round(o.reach * e)),
+              blur: Math.round(2 + o.soft * e),
+              alpha:
+                Math.round(
+                  clamp(o.alpha * (1.1 - (i / o.n) * 0.35), 0.01, 1) * 100,
+                ) / 100,
+              color: o.color,
+            }),
+          );
+        }
+        return out;
+      }
+
+      /* ============================== presets ============================== */
+      const AMBER = "#f0b83d";
+      function scene(canvas, fill, radius, finish) {
+        Object.assign(S.scene, {
+          canvas,
+          fill,
+          radius: radius || 18,
+          finish: finish || "flat",
+        });
+      }
+      const PRESETS = [
+        {
+          name: "Near",
+          tile: "#f6f6f4",
+          sh: "0 1px 2px rgba(0,0,0,.4)",
+          make() {
+            scene("#f6f6f4", "#ffffff");
+            const c = inkFor("#f6f6f4");
+            S.layers = forge({
+              n: 3,
+              reach: 10,
+              soft: 12,
+              curve: 1.6,
+              alpha: 0.14,
+              contact: true,
+              color: c,
+            });
+          },
+        },
+        {
+          name: "Mid",
+          tile: "#e8e2d4",
+          sh: "0 3px 6px rgba(0,0,0,.45)",
+          make() {
+            scene("#e8e2d4", "#faf7f0");
+            const c = inkFor("#e8e2d4");
+            S.layers = forge({
+              n: 5,
+              reach: 36,
+              soft: 44,
+              curve: 1.8,
+              alpha: 0.11,
+              contact: true,
+              color: c,
+            });
+          },
+        },
+        {
+          name: "Far",
+          tile: "#dde3ea",
+          sh: "0 5px 10px rgba(0,0,0,.5)",
+          make() {
+            scene("#dde3ea", "#fdfdfc");
+            const c = inkFor("#dde3ea");
+            S.layers = forge({
+              n: 7,
+              reach: 82,
+              soft: 100,
+              curve: 2.1,
+              alpha: 0.09,
+              contact: true,
+              color: c,
+            });
+          },
+        },
+        {
+          name: "Paper",
+          tile: "#efe9dd",
+          sh: "0 2px 4px rgba(0,0,0,.45)",
+          make() {
+            scene("#efe9dd", "#ffffff");
+            const c = inkFor("#efe9dd");
+            S.layers = [
+              L({ dist: 1, blur: 2, alpha: 0.16, color: c }),
+              L({ dist: 6, blur: 16, alpha: 0.12, color: c }),
+            ];
+          },
+        },
+        {
+          name: "Elevate",
+          tile: "#eceff1",
+          sh: "0 2px 3px -1px rgba(0,0,0,.4), 0 3px 6px rgba(0,0,0,.3)",
+          make() {
+            scene("#eceff1", "#ffffff");
+            const c = inkFor("#eceff1");
+            S.layers = [
+              L({ dist: 5, blur: 5, spread: -3, alpha: 0.2, color: c }),
+              L({ dist: 8, blur: 10, spread: 1, alpha: 0.14, color: c }),
+              L({ dist: 3, blur: 14, spread: 2, alpha: 0.12, color: c }),
+            ];
+          },
+        },
+        {
+          name: "Pop",
+          tile: "#f5c84c",
+          sh: "3px 3px 0 #17130d",
+          make() {
+            scene("#f5c84c", "#fdf6e3", 6);
+            S.layers = [L({ dist: 9, blur: 0, alpha: 1, color: "#241f16" })];
+          },
+        },
+        {
+          name: "Cel",
+          tile: "#cfe8d5",
+          sh: "2px 2px 0 #241f16, 4px 4px 0 " + AMBER,
+          make() {
+            scene("#cfe8d5", "#ffffff", 10);
+            S.layers = [
+              L({ dist: 6, blur: 0, alpha: 1, color: "#241f16" }),
+              L({ dist: 12, blur: 0, alpha: 1, color: AMBER }),
+            ];
+          },
+        },
+        {
+          name: "Long",
+          tile: "#e07856",
+          sh: "1px 1px 0 rgba(0,0,0,.5), 3px 3px 0 rgba(0,0,0,.3), 5px 5px 0 rgba(0,0,0,.15)",
+          make() {
+            scene("#e07856", "#f8ecdd", 10);
+            const c = shade("#e07856", -0.22),
+              out = [];
+            for (let i = 1; i <= 16; i++)
+              out.push(
+                L({
+                  dist: Math.round(2 + i * 2.5),
+                  blur: 0,
+                  alpha: Math.round((0.3 * (1 - i / 18) + 0.03) * 100) / 100,
+                  color: c,
+                }),
+              );
+            S.layers = out;
+          },
+        },
+        {
+          name: "Neon",
+          tile: "#101018",
+          sh: "0 0 7px #59d4ff",
+          make() {
+            scene("#111015", "#181722", 16);
+            S.layers = [
+              L({ dist: 0, blur: 6, alpha: 0.9, color: "#8be9ff" }),
+              L({ dist: 0, blur: 18, alpha: 0.55, color: "#59d4ff" }),
+              L({ dist: 0, blur: 48, alpha: 0.4, color: "#2ea8ff" }),
+              L({ dist: 0, blur: 110, alpha: 0.3, color: "#1f7dff" }),
+            ];
+          },
+        },
+        {
+          name: "Aura",
+          tile: "#141220",
+          sh: "-2px -2px 6px rgba(57,208,255,.8), 2px 2px 6px rgba(255,90,162,.8)",
+          make() {
+            scene("#14121a", "#1c1926", 16);
+            S.layers = [
+              L({ dist: 16, blur: 44, alpha: 0.6, color: "#ff5aa2" }),
+              L({ dist: -16, blur: 44, alpha: 0.6, color: "#39d0ff" }),
+            ];
+          },
+        },
+        {
+          name: "Ring",
+          tile: "#151a17",
+          sh: "0 0 0 3px " + AMBER,
+          make() {
+            scene("#151a17", "#1d231f", 14);
+            S.layers = [
+              L({ dist: 0, blur: 0, spread: 5, alpha: 1, color: AMBER }),
+              L({ dist: 10, blur: 26, alpha: 0.5, color: "#000000" }),
+            ];
+          },
+        },
+        {
+          name: "Puff",
+          tile: "#e0e0e0",
+          sh: "2px 2px 5px #b8b8b8, -2px -2px 5px #ffffff",
+          make() {
+            scene("#e0e0e0", "#e0e0e0", 28, "convex");
+            S.layers = [
+              L({
+                dist: 12,
+                blur: 26,
+                alpha: 1,
+                color: shade("#e0e0e0", -0.13),
+              }),
+              L({
+                dist: -12,
+                blur: 26,
+                alpha: 1,
+                color: shade("#e0e0e0", 0.13),
+              }),
+            ];
+          },
+        },
+        {
+          name: "Crater",
+          tile: "#e0e0e0",
+          sh: "inset 2px 2px 5px #b8b8b8, inset -2px -2px 5px #ffffff",
+          make() {
+            scene("#e0e0e0", "#e0e0e0", 28, "concave");
+            S.layers = [
+              L({
+                dist: 10,
+                blur: 22,
+                alpha: 1,
+                color: shade("#e0e0e0", -0.13),
+                inset: true,
+              }),
+              L({
+                dist: -10,
+                blur: 22,
+                alpha: 1,
+                color: shade("#e0e0e0", 0.13),
+                inset: true,
+              }),
+            ];
+          },
+        },
+        {
+          name: "Well",
+          tile: "#cfd8cf",
+          sh: "inset 2px 2px 4px rgba(0,0,0,.45)",
+          make() {
+            scene("#cfd8cf", "#e4eae4", 14);
+            const c = inkFor("#cfd8cf");
+            S.layers = [
+              L({ dist: 6, blur: 14, alpha: 0.3, color: c, inset: true }),
+              L({
+                dist: -4,
+                blur: 8,
+                alpha: 0.65,
+                color: "#ffffff",
+                inset: true,
+              }),
+              L({ dist: 1, blur: 2, alpha: 0.1, color: c }),
+            ];
+          },
+        },
+      ];
+
+      /* ============================== dom refs ============================== */
+      const stage = $("stage"),
+        sun = $("sun"),
+        subject = $("subject"),
+        raySvg = $("raySvg"),
+        rayLine = $("rayLine"),
+        live = $("live");
+
+      /* ============================== rendering ============================== */
+      function stageGeom() {
+        const r = stage.getBoundingClientRect();
+        return {
+          w: r.width,
+          h: r.height,
+          cx: r.width / 2,
+          cy: r.height / 2,
+          rx: r.width / 2 - 30,
+          ry: r.height / 2 - 30,
+          rect: r,
+        };
+      }
+      function renderSun() {
+        const g = stageGeom();
+        const sx = g.cx + Math.cos(S.light.a) * S.light.d * g.rx;
+        const sy = g.cy + Math.sin(S.light.a) * S.light.d * g.ry;
+        sun.style.left = sx - 17 + "px";
+        sun.style.top = sy - 17 + "px";
+        raySvg.setAttribute("viewBox", `0 0 ${g.w} ${g.h}`);
+        raySvg.setAttribute("width", g.w);
+        raySvg.setAttribute("height", g.h);
+        rayLine.setAttribute("x1", sx);
+        rayLine.setAttribute("y1", sy);
+        rayLine.setAttribute("x2", g.cx);
+        rayLine.setAttribute("y2", g.cy);
+      }
+      const SHAPES = {
+        star: "M50 3l12.9 30.3 32.8 2.7-24.9 21.5 7.5 32L50 72.4 21.7 89.5l7.5-32L4.3 36l32.8-2.7z",
+        bolt: "M58 2L18 56h20L38 98l44-58H60z",
+        blob: "M78 22c12 12 18 30 12 44S66 90 48 92 14 84 8 68s0-38 14-50S66 10 78 22z",
+        ring: "M50 4a46 46 0 1 0 0 92 46 46 0 0 0 0-92zm0 24a22 22 0 1 1 0 44 22 22 0 0 1 0-44z",
+      };
+      function gradAngleDeg() {
+        // css gradient angle pointing toward the light
+        const lx = Math.cos(S.light.a),
+          ly = Math.sin(S.light.a);
+        return Math.round(Math.atan2(lx, -ly) / DEG);
+      }
+      function renderSubject() {
+        const sc = S.scene,
+          val = shadowValue(S.mode);
+        stage.style.background = sc.canvas;
+        stage.classList.toggle("darkc", lum(sc.canvas) < 0.45);
+        rayLine.style.color = lum(sc.canvas) < 0.45 ? "#ffffff" : "#000000";
+        subject.removeAttribute("style");
+        if (S.mode === "box") {
+          subject.textContent = "";
+          Object.assign(subject.style, {
+            width: sc.w + "px",
+            height: sc.h + "px",
+            borderRadius: sc.radius + "px",
+            boxShadow: val === "none" ? "none" : val,
+          });
+          if (sc.finish === "flat") subject.style.background = sc.fill;
+          else {
+            const k = sc.finish === "convex" ? 0.07 : -0.07;
+            subject.style.background = `linear-gradient(${gradAngleDeg()}deg, ${shade(sc.fill, -k)}, ${shade(sc.fill, k)})`;
+          }
+        } else if (S.mode === "text") {
+          subject.textContent = sc.text || "Umbra";
+          Object.assign(subject.style, {
+            font: `700 ${sc.font}px/1.05 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif`,
+            color: sc.fill,
+            letterSpacing: "-0.01em",
+            textAlign: "center",
+            textShadow: val === "none" ? "none" : val,
+          });
+        } else {
+          const size = Math.round(sc.w * 0.8);
+          subject.innerHTML =
+            `<svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="${sc.fill}" fill-rule="evenodd">` +
+            `<path d="${SHAPES[sc.shape] || SHAPES.star}"/></svg>`;
+          subject.firstChild.style.filter = val === "none" ? "none" : val;
+        }
+      }
+      function renderCode() {
+        $("code").innerHTML = highlight(outputText());
+      }
+      const I = {
+        eye: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.6-4.6 7-4.6S15 8 15 8s-2.6 4.6-7 4.6S1 8 1 8z"/><circle cx="8" cy="8" r="2.1"/></svg>',
+        eyeOff:
+          '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.6-4.6 7-4.6S15 8 15 8s-2.6 4.6-7 4.6S1 8 1 8z" opacity=".35"/><path d="M3 13L13 3"/></svg>',
+        up: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12.5v-9M4.5 7L8 3.5 11.5 7"/></svg>',
+        down: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5v9M4.5 9L8 12.5 11.5 9"/></svg>',
+        dup: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M11 5V4a1.5 1.5 0 0 0-1.5-1.5h-5A1.5 1.5 0 0 0 3 4v5A1.5 1.5 0 0 0 4.5 10.5H5" fill="none"/></svg>',
+        x: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+      };
+      function renderList() {
+        const el = $("llist");
+        el.innerHTML =
+          S.layers
+            .map((l, i) => {
+              const pct = Math.round(l.alpha * 100) + "%";
+              const meta = l.follow
+                ? `☀ ${l.dist} · blur ${rnd1(l.blur)} · ${pct}`
+                : `${rnd1(l.x)}, ${rnd1(l.y)} · blur ${rnd1(l.blur)} · ${pct}`;
+              return `<div class="lrow${i === S.sel ? " sel" : ""}${l.on ? " on" : " hid"}" data-i="${i}">
+      <button class="ico eye tip" data-act="eye" data-i="${i}" data-tip="${l.on ? "hide" : "show"} layer" aria-label="${l.on ? "Hide" : "Show"} layer ${i + 1}" aria-pressed="${l.on}">${l.on ? I.eye : I.eyeOff}</button>
+      <button class="lbody" data-act="sel" data-i="${i}" aria-label="Select layer ${i + 1}">
+        <span class="sw" style="background:${l.color}"></span>
+        <span class="lm">${meta}</span>
+      </button>
+      ${l.inset && S.mode === "box" ? '<span class="badge">in</span>' : ""}
+      <span class="lops">
+        <button class="ico" data-act="up" data-i="${i}" aria-label="Move layer ${i + 1} up" ${i === 0 ? "disabled" : ""}>${I.up}</button>
+        <button class="ico" data-act="down" data-i="${i}" aria-label="Move layer ${i + 1} down" ${i === S.layers.length - 1 ? "disabled" : ""}>${I.down}</button>
+        <button class="ico tip" data-act="dup" data-i="${i}" data-tip="duplicate" aria-label="Duplicate layer ${i + 1}">${I.dup}</button>
+        <button class="ico tip" data-act="del" data-i="${i}" data-tip="delete" aria-label="Delete layer ${i + 1}">${I.x}</button>
+      </span>
+    </div>`;
+            })
+            .join("") ||
+          '<p class="hint" style="margin:0">no layers. shadowless, like a vampire. add one below.</p>';
+      }
+      function renderLayerPanel() {
+        const p = $("layerPanel"),
+          l = S.layers[S.sel];
+        p.classList.toggle("none", !l);
+        if (!l) {
+          $("layerTitle").textContent = "No layer";
+          return;
+        }
+        $("layerTitle").textContent = `Layer ${S.sel + 1} / ${S.layers.length}`;
+        $("bLink").setAttribute("aria-pressed", String(l.follow));
+        $("bLink").textContent = l.follow
+          ? "☀ linked to light"
+          : "⚭ unlinked — manual x/y";
+        $("rowDist").hidden = !l.follow;
+        $("rowX").hidden = l.follow;
+        $("rowY").hidden = l.follow;
+        const v = layerVec(l);
+        setCtl(
+          "inLDist",
+          "vLDist",
+          l.dist,
+          px(l.dist) + ` → ${rnd1(v.x)},${rnd1(v.y)}`,
+        );
+        setCtl("inLX", "vLX", l.x, px(l.x));
+        setCtl("inLY", "vLY", l.y, px(l.y));
+        setCtl("inLBlur", "vLBlur", l.blur, px(l.blur));
+        setCtl("inLSpread", "vLSpread", l.spread, px(l.spread));
+        setCtl("inLAlpha", "vLAlpha", l.alpha, Math.round(l.alpha * 100) + "%");
+        if (held !== $("inLCol")) $("inLCol").value = l.color;
+        $("inLInset").checked = l.inset;
+        const boxOnly = S.mode !== "box";
+        $("rowSpread").classList.toggle("off", boxOnly);
+        $("rowInset").classList.toggle("off", boxOnly);
+        const hint = $("modeHint");
+        hint.hidden = !boxOnly;
+        hint.textContent =
+          S.mode === "drop"
+            ? "drop-shadow() has no spread or inset — those knobs nap here. it also hugs transparency, holes and all."
+            : "text-shadow has no spread or inset — those knobs nap here.";
+      }
+      function setCtl(inId, outId, val, text) {
+        const i = $(inId);
+        if (held !== i) i.value = val;
+        $(outId).textContent = text;
+      }
+      function renderLight() {
+        const az = Math.round((((S.light.a / DEG) % 360) + 360) % 360);
+        const elev = Math.round((1 - S.light.d) * 100);
+        $("vAz").textContent = az + "°";
+        $("needle").setAttribute("transform", `rotate(${az})`);
+        const kb = $("knob");
+        kb.setAttribute("aria-valuenow", az);
+        kb.setAttribute("aria-valuetext", az + " degrees");
+        setCtl("inElev", "vElev", elev, elev + "%");
+        $("readLight").innerHTML =
+          `☀ <b>${az}°</b> · elev <b>${elev}%</b> · throw ×<b>${Math.round(throwK() * 100) / 100}</b>`;
+      }
+      let favTimer = 0;
+      function renderLogo() {
+        // the little logo casts its shadow — and holds its sun — per the real light
+        const a = S.light.a,
+          off = 2 + throwK() * 2.2;
+        const sx = +(9 - Math.cos(a) * off).toFixed(1);
+        const sy = +(9 - Math.sin(a) * off).toFixed(1);
+        const cx = +(15 + Math.cos(a) * 10.5).toFixed(1);
+        const cy = +(15 + Math.sin(a) * 10.5).toFixed(1);
+        $("logoShadow").setAttribute("x", sx);
+        $("logoShadow").setAttribute("y", sy);
+        $("logoSun").setAttribute("cx", cx);
+        $("logoSun").setAttribute("cy", cy);
+        clearTimeout(favTimer);
+        favTimer = setTimeout(() => {
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#17140f"/><rect x="${sx}" y="${sy}" width="12" height="12" rx="3" fill="#4a3d28"/><rect x="9" y="9" width="12" height="12" rx="3" fill="#f0b83d"/><circle cx="${cx}" cy="${cy}" r="2.6" fill="#ffe9b8"/></svg>`;
+          $("favicon").href = "data:image/svg+xml," + encodeURIComponent(svg);
+        }, 180);
+      }
+      function renderScene() {
+        const sc = S.scene;
+        if (held !== $("inCanvas")) $("inCanvas").value = sc.canvas;
+        if (held !== $("inElBg")) $("inElBg").value = sc.fill;
+        if (document.activeElement !== $("inText")) $("inText").value = sc.text;
+        $("selShape").value = sc.shape;
+        $("selFinish").value = sc.finish;
+        $("selFinish").hidden = S.mode !== "box";
+        $("selShape").hidden = S.mode !== "drop";
+        $("inText").hidden = S.mode !== "text";
+        $("fillLabel").textContent = S.mode === "text" ? "ink" : "fill";
+      }
+      function renderModeUi() {
+        document
+          .querySelectorAll(".seg [data-mode]")
+          .forEach((b) =>
+            b.setAttribute("aria-pressed", String(b.dataset.mode === S.mode)),
+          );
+        document
+          .querySelectorAll(".otab")
+          .forEach((b) =>
+            b.setAttribute("aria-pressed", String(b.dataset.fmt === S.fmt)),
+          );
+      }
+      function update() {
+        renderLight();
+        renderLogo();
+        renderScene();
+        renderModeUi();
+        renderSubject();
+        renderSun();
+        renderList();
+        renderLayerPanel();
+        renderCode();
+        save();
+        scheduleHistory();
+      }
+
+      /* ============================== history ============================== */
+      let hist = [],
+        hi = -1,
+        restoring = false,
+        histTimer = 0;
+      function renderHistBtns() {
+        $("bUndo").disabled = hi <= 0;
+        $("bRedo").disabled = hi >= hist.length - 1;
+      }
+      function scheduleHistory() {
+        if (restoring) return;
+        clearTimeout(histTimer);
+        histTimer = setTimeout(() => {
+          const s = JSON.stringify(S);
+          if (hist[hi] !== s) {
+            hist.splice(hi + 1);
+            hist.push(s);
+            if (hist.length > 60) hist.shift();
+            hi = hist.length - 1;
+            renderHistBtns();
+          }
+        }, 350);
+      }
+      function restoreHist(s) {
+        restoring = true;
+        clearTimeout(histTimer);
+        S = JSON.parse(s);
+        update();
+        restoring = false;
+        renderHistBtns();
+      }
+      function undo() {
+        if (hi > 0) {
+          hi--;
+          restoreHist(hist[hi]);
+          live.textContent = "Undone";
+        }
+      }
+      function redo() {
+        if (hi < hist.length - 1) {
+          hi++;
+          restoreHist(hist[hi]);
+          live.textContent = "Redone";
+        }
+      }
+      $("bUndo").addEventListener("click", undo);
+      $("bRedo").addEventListener("click", redo);
+
+      /* ============================== light drag ============================== */
+      let dragging = false;
+      function setLightFromPointer(e) {
+        const g = stageGeom();
+        const nx = (e.clientX - g.rect.left - g.cx) / g.rx;
+        const ny = (e.clientY - g.rect.top - g.cy) / g.ry;
+        const m = Math.hypot(nx, ny);
+        S.light.d = clamp(m, 0, 1);
+        if (m > 0.02) S.light.a = Math.atan2(ny, nx); // at dead center the angle keeps its last heading
+        update();
+      }
+      stage.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0 && e.pointerType === "mouse") return;
+        dragging = true;
+        stage.setPointerCapture(e.pointerId);
+        setLightFromPointer(e);
+        e.preventDefault();
+      });
+      stage.addEventListener("pointermove", (e) => {
+        if (dragging) setLightFromPointer(e);
+      });
+      stage.addEventListener("pointerup", () => {
+        dragging = false;
+      });
+      stage.addEventListener("pointercancel", () => {
+        dragging = false;
+      });
+      window.addEventListener("resize", renderSun);
+
+      sun.addEventListener("keydown", (e) => {
+        const fine = e.shiftKey,
+          k = e.key;
+        if (k === "ArrowLeft") S.light.a -= (fine ? 1 : 5) * DEG;
+        else if (k === "ArrowRight") S.light.a += (fine ? 1 : 5) * DEG;
+        else if (k === "ArrowUp")
+          S.light.d = clamp(S.light.d - (fine ? 0.01 : 0.05), 0, 1);
+        else if (k === "ArrowDown")
+          S.light.d = clamp(S.light.d + (fine ? 0.01 : 0.05), 0, 1);
+        else return;
+        e.preventDefault();
+        update();
+        const az = Math.round((((S.light.a / DEG) % 360) + 360) % 360);
+        live.textContent = `Light at ${az} degrees, elevation ${Math.round((1 - S.light.d) * 100)} percent`;
+      });
+
+      /* ============================== bindings ============================== */
+      function onRange(id, fn) {
+        $(id).addEventListener("input", (e) => {
+          fn(+e.target.value);
+          update();
+        });
+      }
+      onRange("inElev", (v) => {
+        S.light.d = clamp(1 - v / 100, 0, 1);
+      });
+
+      /* angle knob */
+      const knob = $("knob");
+      {
+        let t = "";
+        for (let i = 0; i < 12; i++) {
+          const a = i * 30 * DEG;
+          const r1 = i % 3 === 0 ? 23.5 : 26;
+          t += `<line x1="${(Math.cos(a) * r1).toFixed(1)}" y1="${(Math.sin(a) * r1).toFixed(1)}" x2="${(Math.cos(a) * 29).toFixed(1)}" y2="${(Math.sin(a) * 29).toFixed(1)}"/>`;
+        }
+        $("knobTicks").innerHTML = t;
+      }
+      let knobDrag = false;
+      function setAngleFromKnob(e) {
+        const r = knob.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2);
+        const dy = e.clientY - (r.top + r.height / 2);
+        if (Math.hypot(dx, dy) < 4) return;
+        S.light.a = Math.atan2(dy, dx);
+        update();
+      }
+      knob.addEventListener("pointerdown", (e) => {
+        knobDrag = true;
+        knob.setPointerCapture(e.pointerId);
+        setAngleFromKnob(e);
+        e.preventDefault();
+      });
+      knob.addEventListener("pointermove", (e) => {
+        if (knobDrag) setAngleFromKnob(e);
+      });
+      knob.addEventListener("pointerup", () => {
+        knobDrag = false;
+      });
+      knob.addEventListener("pointercancel", () => {
+        knobDrag = false;
+      });
+      knob.addEventListener("keydown", (e) => {
+        const fine = e.shiftKey;
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown")
+          S.light.a -= (fine ? 1 : 5) * DEG;
+        else if (e.key === "ArrowRight" || e.key === "ArrowUp")
+          S.light.a += (fine ? 1 : 5) * DEG;
+        else return;
+        e.preventDefault();
+        update();
+      });
+
+      $("inCanvas").addEventListener("input", (e) => {
+        S.scene.canvas = e.target.value;
+        update();
+      });
+      $("inElBg").addEventListener("input", (e) => {
+        S.scene.fill = e.target.value;
+        update();
+      });
+      $("inText").addEventListener("input", (e) => {
+        S.scene.text = e.target.value;
+        update();
+      });
+      $("selShape").addEventListener("change", (e) => {
+        S.scene.shape = e.target.value;
+        update();
+      });
+      $("selFinish").addEventListener("change", (e) => {
+        S.scene.finish = e.target.value;
+        update();
+      });
+
+      document.querySelectorAll(".seg [data-mode]").forEach((b) =>
+        b.addEventListener("click", () => {
+          S.mode = b.dataset.mode;
+          update();
+        }),
+      );
+      document.querySelectorAll(".otab").forEach((b) =>
+        b.addEventListener("click", () => {
+          S.fmt = b.dataset.fmt;
+          update();
+        }),
+      );
+
+      /* layers */
+      $("bAdd").addEventListener("click", () => {
+        S.layers.push(L({ color: inkFor(S.scene.canvas) }));
+        S.sel = S.layers.length - 1;
+        update();
+      });
+      $("llist").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-act]");
+        if (!b || b.disabled) return;
+        const i = +b.dataset.i,
+          act = b.dataset.act,
+          a = S.layers;
+        if (act === "eye") {
+          a[i].on = !a[i].on;
+          S.sel = i;
+        } else if (act === "sel") S.sel = i;
+        else if (act === "dup") {
+          a.splice(i + 1, 0, Object.assign({}, a[i]));
+          S.sel = i + 1;
+        } else if (act === "del") {
+          a.splice(i, 1);
+          S.sel = clamp(S.sel, 0, a.length - 1);
+        } else if (act === "up" && i > 0) {
+          [a[i - 1], a[i]] = [a[i], a[i - 1]];
+          S.sel = i - 1;
+        } else if (act === "down" && i < a.length - 1) {
+          [a[i + 1], a[i]] = [a[i], a[i + 1]];
+          S.sel = i + 1;
+        }
+        update();
+      });
+      function selLayer() {
+        return S.layers[S.sel];
+      }
+      function onLayer(id, key) {
+        $(id).addEventListener("input", (e) => {
+          const l = selLayer();
+          if (!l) return;
+          l[key] = e.target.type === "color" ? e.target.value : +e.target.value;
+          update();
+        });
+      }
+      onLayer("inLDist", "dist");
+      onLayer("inLBlur", "blur");
+      onLayer("inLSpread", "spread");
+      onLayer("inLAlpha", "alpha");
+      onLayer("inLCol", "color");
+      onLayer("inLX", "x");
+      onLayer("inLY", "y");
+      $("inLInset").addEventListener("change", (e) => {
+        const l = selLayer();
+        if (l) {
+          l.inset = e.target.checked;
+          update();
+        }
+      });
+      $("bLink").addEventListener("click", () => {
+        const l = selLayer();
+        if (!l) return;
+        if (l.follow) {
+          const v = layerVec(l);
+          l.x = Math.round(v.x);
+          l.y = Math.round(v.y);
+          l.follow = false;
+        } else {
+          l.dist = clamp(Math.round(Math.hypot(l.x, l.y) / throwK()), 0, 160);
+          l.follow = true;
+        }
+        update();
+      });
+
+      /* presets */
+      const chipsEl = $("chips");
+      chipsEl.innerHTML = PRESETS.map(
+        (p, i) =>
+          `<button class="chip" data-p="${i}"><i style="background:${p.tile}; box-shadow:${p.sh}"></i>${p.name}</button>`,
+      ).join("");
+      chipsEl.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-p]");
+        if (!b) return;
+        PRESETS[+b.dataset.p].make();
+        S.sel = 0;
+        update();
+        live.textContent = `Preset ${PRESETS[+b.dataset.p].name} applied`;
+      });
+
+      /* copy */
+      $("bCopy").addEventListener("click", async () => {
+        const text = outputText();
+        let ok = false;
+        try {
+          await navigator.clipboard.writeText(text);
+          ok = true;
+        } catch (e) {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            ok = document.execCommand("copy");
+          } catch (e2) {}
+          ta.remove();
+        }
+        const b = $("bCopy");
+        b.textContent = ok ? "Copied ✓" : "Select & copy";
+        b.classList.add("done");
+        live.textContent = ok ? "CSS copied to clipboard" : "Copy failed";
+        setTimeout(() => {
+          b.textContent = "Copy";
+          b.classList.remove("done");
+        }, 1400);
+      });
+
+      /* ============================== random ============================== */
+      const rr = (a, b) => a + Math.random() * (b - a);
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      const LIGHT_CANVASES = [
+        "#e8e2d4",
+        "#f6f6f4",
+        "#dde3ea",
+        "#cfd8cf",
+        "#f3e8c8",
+        "#e9dcd0",
+        "#d8e6da",
+        "#eadeD8".toLowerCase(),
+        "#f5c84c",
+        "#e07856",
+      ];
+      const DARK_CANVASES = [
+        "#17151d",
+        "#14121a",
+        "#111318",
+        "#101418",
+        "#1a1614",
+        "#151a17",
+        "#1a1218",
+      ];
+      function randomize() {
+        S.light.a = rr(0, 360) * DEG;
+        S.light.d = rr(0.25, 0.75);
+        const dark = Math.random() < 0.3;
+        const canvas = pick(dark ? DARK_CANVASES : LIGHT_CANVASES);
+        if (dark) {
+          scene(canvas, shade(canvas, 0.045), pick([14, 16, 18]));
+          const roll = Math.random();
+          if (roll < 0.4) {
+            // glow — a single vivid hue ringing outward
+            const h = rr(0, 360),
+              c = (a) => hslToHex(h, 0.85, a);
+            S.layers = [
+              L({ dist: 0, blur: 6, alpha: 0.9, color: c(0.75) }),
+              L({ dist: 0, blur: 18, alpha: 0.55, color: c(0.62) }),
+              L({ dist: 0, blur: rr(40, 60), alpha: 0.4, color: c(0.55) }),
+              L({ dist: 0, blur: rr(90, 130), alpha: 0.3, color: c(0.5) }),
+            ];
+          } else if (roll < 0.7) {
+            // aura — two hues on opposite sides of the light
+            const h = rr(0, 360),
+              d = rr(10, 22),
+              b = rr(30, 56);
+            S.layers = [
+              L({
+                dist: d,
+                blur: b,
+                alpha: rr(0.45, 0.7),
+                color: hslToHex(h, 0.85, 0.62),
+              }),
+              L({
+                dist: -d,
+                blur: b,
+                alpha: rr(0.45, 0.7),
+                color: hslToHex(h + rr(120, 220), 0.85, 0.62),
+              }),
+            ];
+          } else {
+            // deep soft shadow on dark
+            S.layers = forge({
+              n: Math.round(rr(3, 6)),
+              reach: rr(18, 60),
+              soft: rr(30, 80),
+              curve: rr(1.4, 2.4),
+              alpha: rr(0.3, 0.5),
+              contact: true,
+              color: "#000000",
+            });
+          }
+        } else {
+          const roll = Math.random();
+          const [cr, cg, cb] = hexToRgb(canvas),
+            [ch] = rgbToHsl(cr, cg, cb);
+          const ink = hslToHex(ch + rr(-25, 25), rr(0.15, 0.4), rr(0.12, 0.26));
+          if (roll < 0.6) {
+            // soft cascade
+            scene(
+              canvas,
+              shade(canvas, rr(0.06, 0.14)),
+              pick([10, 14, 18, 22]),
+            );
+            S.layers = forge({
+              n: Math.round(rr(3, 7)),
+              reach: rr(14, 90),
+              soft: rr(20, 110),
+              curve: rr(1.3, 2.5),
+              alpha: rr(0.07, 0.16),
+              contact: Math.random() < 0.7,
+              color: ink,
+            });
+          } else if (roll < 0.72) {
+            // hard pop
+            scene(canvas, shade(canvas, 0.16), pick([4, 6, 10]));
+            S.layers = [
+              L({
+                dist: Math.round(rr(6, 14)),
+                blur: 0,
+                alpha: 1,
+                color: shade(ink, -0.06),
+              }),
+            ];
+          } else if (roll < 0.84) {
+            // long shadow
+            scene(canvas, shade(canvas, 0.18), pick([6, 10]));
+            const c = shade(canvas, -0.22),
+              n = Math.round(rr(12, 18)),
+              out = [];
+            for (let i = 1; i <= n; i++)
+              out.push(
+                L({
+                  dist: Math.round(2 + i * rr(2, 3)),
+                  blur: 0,
+                  alpha:
+                    Math.round((0.3 * (1 - i / (n + 2)) + 0.03) * 100) / 100,
+                  color: c,
+                }),
+              );
+            S.layers = out;
+          } else if (roll < 0.92) {
+            // cel — hard double
+            scene(canvas, "#ffffff", pick([6, 10]));
+            S.layers = [
+              L({ dist: 6, blur: 0, alpha: 1, color: ink }),
+              L({
+                dist: 12,
+                blur: 0,
+                alpha: 1,
+                color: hslToHex(ch + rr(140, 220), 0.7, 0.6),
+              }),
+            ];
+          } else {
+            // neumorph
+            scene(canvas, canvas, 28, pick(["convex", "flat"]));
+            const k = rr(0.1, 0.16),
+              d = Math.round(rr(8, 16));
+            S.layers = [
+              L({ dist: d, blur: d * 2.2, alpha: 1, color: shade(canvas, -k) }),
+              L({ dist: -d, blur: d * 2.2, alpha: 1, color: shade(canvas, k) }),
+            ];
+          }
+        }
+        S.sel = 0;
+        update();
+        live.textContent = "Rolled a new shadow";
+      }
+      $("bRandom").addEventListener("click", randomize);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.target.matches("input, select, textarea")) return;
+        const k = e.key.toLowerCase();
+        if (k === "r" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+          randomize();
+        } else if (k === "z" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          e.shiftKey ? redo() : undo();
+        }
+      });
+
+      /* ============================== init ============================== */
+      if (!load()) PRESETS[1].make(); // start on Mid
+      update();
+    </script>
+  </body>
+</html>
