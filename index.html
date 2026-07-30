@@ -378,27 +378,6 @@
       .knob svg {
         display: block;
       }
-      .check {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 12px 0 2px;
-        cursor: pointer;
-        font: 500 11px/1 var(--mono);
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--mut);
-      }
-      .check input {
-        accent-color: var(--amber);
-        width: 14px;
-        height: 14px;
-        cursor: pointer;
-      }
-      .off {
-        opacity: 0.32;
-        pointer-events: none;
-      }
 
       /* ---------- toolbar + stage ---------- */
       .stagebar {
@@ -692,12 +671,17 @@
         justify-content: center;
         margin-top: 8px;
       }
-      .linkchip {
-        margin: 2px 0 6px;
+      #rowFollow {
+        margin: 2px 0 10px;
       }
-      .linkchip[aria-pressed="true"] {
-        border-color: var(--amber);
+      #rowInset {
+        margin: 12px 0 2px;
+      }
+      .lsun {
+        flex: none;
+        font-size: 10px;
         color: var(--amber);
+        opacity: 0.8;
       }
       #layerPanel.none > *:not(.ph):not(.hint) {
         display: none;
@@ -985,9 +969,8 @@
             </svg>
             <div id="subject"></div>
             <button
-              class="sun tip"
+              class="sun"
               id="sun"
-              data-tip="the light. drag it — or arrow keys: ← → rotate, ↑ ↓ raise and lower (shift = fine)"
               aria-label="Light source. Arrow keys: left and right rotate, up and down change elevation. Hold Shift for fine steps."
             >
               <svg
@@ -1128,14 +1111,17 @@
             <h2 class="ph">
               <b>03</b> <span id="layerTitle">Layer 1 / 1</span>
             </h2>
-            <button
-              class="btn linkchip tip"
-              id="bLink"
-              data-tip="linked layers follow the sun as one; unlink for manual x / y offsets"
-              aria-pressed="true"
+            <div
+              class="inline tip"
+              id="rowFollow"
+              data-tip="light: this layer follows the sun; manual: fixed x / y offsets you set by hand"
             >
-              ☀ linked to light
-            </button>
+              <span class="ck" style="flex: 1"><span>Offset</span></span>
+              <div class="seg" role="group" aria-label="Offset mode">
+                <button id="bFollowOn" aria-pressed="true">☀ light</button>
+                <button id="bFollowOff" aria-pressed="false">manual</button>
+              </div>
+            </div>
             <label
               class="ctl tip"
               id="rowDist"
@@ -1231,13 +1217,17 @@
                 aria-label="Layer color"
               />
             </div>
-            <label
-              class="check tip"
+            <div
+              class="inline tip"
               id="rowInset"
-              data-tip="draws the shadow inside the subject instead of behind it"
-              ><input type="checkbox" id="inLInset" /> inset</label
+              data-tip="inset draws the shadow inside the subject instead of outside it"
             >
-            <p class="hint" id="modeHint" hidden></p>
+              <span class="ck" style="flex: 1"><span>Placement</span></span>
+              <div class="seg" role="group" aria-label="Shadow placement">
+                <button id="bInsetOff" aria-pressed="true">outset</button>
+                <button id="bInsetOn" aria-pressed="false">inset</button>
+              </div>
+            </div>
           </div>
 
           <div class="panel">
@@ -1839,9 +1829,9 @@
               const meta = `Layer ${i + 1} - ${kind} ${Math.round(l.alpha * 100)}%`;
               return `<div class="lrow${i === S.sel ? " sel" : ""}${l.on ? " on" : " hid"}" data-i="${i}">
       <button class="ico eye tip" data-act="eye" data-i="${i}" data-tip="${l.on ? "hide" : "show"} layer" aria-label="${l.on ? "Hide" : "Show"} layer ${i + 1}" aria-pressed="${l.on}">${l.on ? I.eye : I.eyeOff}</button>
-      <button class="lbody" data-act="sel" data-i="${i}" aria-label="Select layer ${i + 1}">
+      <button class="lbody" data-act="sel" data-i="${i}" aria-label="Select layer ${i + 1}${l.follow ? ", linked to light" : ""}">
         <span class="sw" style="background:${l.color}"></span>
-        <span class="lm">${meta}</span>
+        <span class="lm">${meta}</span>${l.follow ? '<span class="lsun" aria-hidden="true">☀</span>' : ""}
       </button>
       <span class="lops">
         <button class="ico" data-act="up" data-i="${i}" aria-label="Move layer ${i + 1} up" ${i === 0 ? "disabled" : ""}>${I.up}</button>
@@ -1863,10 +1853,8 @@
           return;
         }
         $("layerTitle").textContent = `Layer ${S.sel + 1} / ${S.layers.length}`;
-        $("bLink").setAttribute("aria-pressed", String(l.follow));
-        $("bLink").textContent = l.follow
-          ? "☀ linked to light"
-          : "⚭ unlinked — manual x/y";
+        $("bFollowOn").setAttribute("aria-pressed", String(l.follow));
+        $("bFollowOff").setAttribute("aria-pressed", String(!l.follow));
         $("rowDist").hidden = !l.follow;
         $("rowX").hidden = l.follow;
         $("rowY").hidden = l.follow;
@@ -1883,16 +1871,11 @@
         setCtl("inLSpread", "vLSpread", l.spread, px(l.spread));
         setCtl("inLAlpha", "vLAlpha", l.alpha, Math.round(l.alpha * 100) + "%");
         if (held !== $("inLCol")) $("inLCol").value = l.color;
-        $("inLInset").checked = l.inset;
+        $("bInsetOn").setAttribute("aria-pressed", String(l.inset));
+        $("bInsetOff").setAttribute("aria-pressed", String(!l.inset));
         const boxOnly = S.mode !== "box";
-        $("rowSpread").classList.toggle("off", boxOnly);
-        $("rowInset").classList.toggle("off", boxOnly);
-        const hint = $("modeHint");
-        hint.hidden = !boxOnly;
-        hint.textContent =
-          S.mode === "drop"
-            ? "drop-shadow() has no spread or inset — those knobs nap here. it also hugs transparency, holes and all."
-            : "text-shadow has no spread or inset — those knobs nap here.";
+        $("rowSpread").hidden = boxOnly;
+        $("rowInset").hidden = boxOnly;
       }
       function setCtl(inId, outId, val, text) {
         const i = $(inId);
@@ -2201,25 +2184,38 @@
       onLayer("inLCol", "color");
       onLayer("inLX", "x");
       onLayer("inLY", "y");
-      $("inLInset").addEventListener("change", (e) => {
+      function setInset(v) {
         const l = selLayer();
-        if (l) {
-          l.inset = e.target.checked;
+        if (l && l.inset !== v) {
+          l.inset = v;
           update();
         }
-      });
-      $("bLink").addEventListener("click", () => {
+      }
+      $("bInsetOn").addEventListener("click", () => setInset(true));
+      $("bInsetOff").addEventListener("click", () => setInset(false));
+      $("bFollowOff").addEventListener("click", () => {
         const l = selLayer();
-        if (!l) return;
-        if (l.follow) {
-          const v = layerVec(l);
-          l.x = Math.round(v.x);
-          l.y = Math.round(v.y);
-          l.follow = false;
-        } else {
-          l.dist = clamp(Math.round(Math.hypot(l.x, l.y) / throwK()), 0, 160);
-          l.follow = true;
-        }
+        if (!l || !l.follow) return;
+        const v = layerVec(l);
+        l.x = Math.round(v.x);
+        l.y = Math.round(v.y);
+        l.follow = false;
+        update();
+      });
+      $("bFollowOn").addEventListener("click", () => {
+        const l = selLayer();
+        if (!l || l.follow) return;
+        // project the manual offset onto the light axis — keeps the
+        // toward/away sign instead of snapping the shadow to the sun
+        l.dist = clamp(
+          Math.round(
+            -(l.x * Math.cos(S.light.a) + l.y * Math.sin(S.light.a)) /
+              throwK(),
+          ),
+          -120,
+          160,
+        );
+        l.follow = true;
         update();
       });
 
