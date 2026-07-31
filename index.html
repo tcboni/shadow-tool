@@ -238,7 +238,6 @@
           italic 11.5px/1.5 Georgia,
           serif;
         color: var(--dim);
-        margin-top: 10px;
       }
 
       /* ---------- controls ---------- */
@@ -260,6 +259,9 @@
         color: var(--ink);
         letter-spacing: 0;
         font-size: 12px;
+      }
+      .ck.grow {
+        flex: 1;
       }
       input[type="range"] {
         -webkit-appearance: none;
@@ -1083,7 +1085,6 @@
                 <label
                   class="ctl tip"
                   data-tip="how high the sun sits — 100% is high noon, shadows tuck underneath"
-                  style="margin: 9px 0 0"
                 >
                   <span class="ck"
                     ><span>Elevation</span><output id="vElev">50%</output></span
@@ -1116,7 +1117,7 @@
               id="rowFollow"
               data-tip="light: this layer follows the sun; manual: fixed x / y offsets you set by hand"
             >
-              <span class="ck" style="flex: 1"><span>Offset</span></span>
+              <span class="ck grow"><span>Offset</span></span>
               <div class="seg" role="group" aria-label="Offset mode">
                 <button id="bFollowOn" aria-pressed="true">☀ light</button>
                 <button id="bFollowOff" aria-pressed="false">manual</button>
@@ -1209,7 +1210,7 @@
               />
             </label>
             <div class="inline">
-              <span class="ck" style="flex: 1"><span>Color</span></span>
+              <span class="ck grow"><span>Color</span></span>
               <input
                 type="color"
                 id="inLCol"
@@ -1222,7 +1223,7 @@
               id="rowInset"
               data-tip="inset draws the shadow inside the subject instead of outside it"
             >
-              <span class="ck" style="flex: 1"><span>Placement</span></span>
+              <span class="ck grow"><span>Placement</span></span>
               <div class="seg" role="group" aria-label="Shadow placement">
                 <button id="bInsetOff" aria-pressed="true">outset</button>
                 <button id="bInsetOn" aria-pressed="false">inset</button>
@@ -1842,7 +1843,7 @@
     </div>`;
             })
             .join("") ||
-          '<p class="hint" style="margin:0">no layers. shadowless, like a vampire. add one below.</p>';
+          '<p class="hint">no layers. shadowless, like a vampire. add one below.</p>';
       }
       function renderLayerPanel() {
         const p = $("layerPanel"),
@@ -2026,7 +2027,7 @@
       stage.addEventListener("pointercancel", () => {
         dragging = false;
       });
-      window.addEventListener("resize", renderSun);
+      new ResizeObserver(renderSun).observe(stage);
 
       sun.addEventListener("keydown", (e) => {
         const fine = e.shiftKey,
