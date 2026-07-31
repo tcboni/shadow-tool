@@ -213,6 +213,7 @@
       }
       .colM .out {
         flex: 1;
+        min-height: 200px;
       }
 
       .panel {
@@ -457,7 +458,7 @@
 
       .stage {
         position: relative;
-        height: 70%;
+        height: 800px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -543,6 +544,27 @@
       }
       .sun svg {
         pointer-events: none;
+      }
+      /* smooth morph while randomizing — .anim is added for the duration
+         only, so dragging the sun stays instant */
+      .stage.anim {
+        transition: background 0.45s ease;
+      }
+      .stage.anim .sun {
+        transition:
+          left 0.45s ease,
+          top 0.45s ease;
+      }
+      .stage.anim #subject {
+        transition:
+          box-shadow 0.45s ease,
+          filter 0.45s ease,
+          text-shadow 0.45s ease,
+          background 0.45s ease,
+          color 0.45s ease,
+          border-radius 0.45s ease,
+          width 0.45s ease,
+          height 0.45s ease;
       }
 
       /* ---------- output ---------- */
@@ -2488,6 +2510,7 @@
         if (!b) return;
         PRESETS[+b.dataset.p].make();
         S.sel = 0;
+        animateStage();
         update();
         live.textContent = `Preset ${PRESETS[+b.dataset.p].name} applied`;
       });
@@ -2585,6 +2608,28 @@
         "#151a17",
         "#1a1218",
       ];
+      let animRaf = 0,
+        animEnd = 0;
+      function animateStage() {
+        stage.classList.add("anim");
+        cancelAnimationFrame(animRaf);
+        animEnd = performance.now() + 470;
+        const loop = () => {
+          // the SVG ray's endpoints can't CSS-transition, so it chases the
+          // sun's transitioned position each frame instead
+          const g = stageGeom(),
+            r = sun.getBoundingClientRect();
+          rayLine.setAttribute("x1", r.left - g.rect.left + r.width / 2);
+          rayLine.setAttribute("y1", r.top - g.rect.top + r.height / 2);
+          if (performance.now() < animEnd)
+            animRaf = requestAnimationFrame(loop);
+          else {
+            stage.classList.remove("anim");
+            renderSun();
+          }
+        };
+        animRaf = requestAnimationFrame(loop);
+      }
       function randomize() {
         S.light.a = rr(0, 360) * DEG;
         S.light.d = rr(0.25, 0.75);
@@ -2804,6 +2849,7 @@
           }
         }
         S.sel = 0;
+        animateStage();
         update();
         toast("Randomized");
       }
