@@ -1612,7 +1612,6 @@
       }
 
       /* ============================== forge ============================== */
-      // builds a comeau-style cascade: distance & blur ease outward, opacity decays gently
       function forge(o) {
         const out = [];
         if (o.contact)
@@ -1630,6 +1629,7 @@
             L({
               dist: Math.max(1, Math.round(o.reach * e)),
               blur: Math.round(2 + o.soft * e),
+              spread: -Math.round((o.taper || 0) * e),
               alpha:
                 Math.round(
                   clamp(o.alpha * (1.1 - (i / o.n) * 0.35), 0.01, 1) * 100,
@@ -1698,6 +1698,7 @@
               soft: 100,
               curve: 2.1,
               alpha: 0.09,
+              taper: 26,
               contact: true,
               color: c,
             });
@@ -1829,6 +1830,120 @@
                 inset: true,
               }),
               L({ dist: 1, blur: 2, alpha: 0.1, color: c }),
+            ];
+          },
+        },
+        {
+          name: "Riso",
+          tile: "#f4edda",
+          sh: "2px 2px 0 rgba(232,80,60,.65), -2px 3px 0 rgba(43,107,216,.65)",
+          make() {
+            // misregistered print inks — fixed offsets that ignore the light
+            scene("#f4edda", "#fbf6e9", 8);
+            lightAt(-135, 0.5);
+            S.layers = [
+              L({
+                follow: false,
+                x: 6,
+                y: 4,
+                blur: 0,
+                alpha: 0.55,
+                color: "#e8503c",
+              }),
+              L({
+                follow: false,
+                x: -4,
+                y: 8,
+                blur: 0,
+                alpha: 0.55,
+                color: "#2b6bd8",
+              }),
+            ];
+          },
+        },
+        {
+          name: "Deck",
+          tile: "#d9d4e8",
+          sh: "0 4px 0 -2px #fff, 0 4px 1px -1px rgba(0,0,0,.35)",
+          make() {
+            // opaque negative-spread layers draw fake sheets stacked
+            // beneath the card, each with its own thin edge shadow
+            scene("#d9d4e8", "#ffffff", 10);
+            lightAt(-90, 0.5);
+            const c = inkFor("#d9d4e8");
+            S.layers = [
+              L({
+                follow: false,
+                x: 0,
+                y: 9,
+                blur: 0,
+                spread: -5,
+                alpha: 1,
+                color: "#efecf7",
+              }),
+              L({
+                follow: false,
+                x: 0,
+                y: 10,
+                blur: 2,
+                spread: -5,
+                alpha: 0.3,
+                color: c,
+              }),
+              L({
+                follow: false,
+                x: 0,
+                y: 18,
+                blur: 0,
+                spread: -10,
+                alpha: 1,
+                color: "#e2ddf0",
+              }),
+              L({
+                follow: false,
+                x: 0,
+                y: 19,
+                blur: 3,
+                spread: -10,
+                alpha: 0.3,
+                color: c,
+              }),
+            ];
+          },
+        },
+        {
+          name: "Prism",
+          tile: "#131217",
+          sh: "2px 2px 4px rgba(255,79,216,.9), 4px 4px 6px rgba(63,169,255,.8)",
+          make() {
+            // the shadow refracts — each step further out shifts hue,
+            // trailing a spectrum away from the light
+            scene("#131217", "#1b1a21", 14);
+            lightAt(-135, 0.55);
+            S.layers = [
+              L({ dist: 6, blur: 12, alpha: 0.6, color: "#ff4fd8" }),
+              L({ dist: 14, blur: 18, alpha: 0.5, color: "#9d5cff" }),
+              L({ dist: 22, blur: 24, alpha: 0.42, color: "#3fa9ff" }),
+              L({ dist: 30, blur: 30, alpha: 0.35, color: "#2fe0b8" }),
+            ];
+          },
+        },
+        {
+          name: "Sonar",
+          tile: "#dfe9e6",
+          sh: "0 0 0 2px rgba(31,92,80,.5), 0 0 0 4px #dfe9e6, 0 0 0 6px rgba(31,92,80,.25)",
+          make() {
+            // concentric rings with gaps — canvas-colored spreads between
+            // the ink rings vanish into the background, like the Slice crop
+            scene("#dfe9e6", "#ffffff", 999);
+            lightAt(-90, 0.5);
+            const c = "#1f5c50";
+            S.layers = [
+              L({ dist: 0, blur: 0, spread: 5, alpha: 0.5, color: c }),
+              L({ dist: 0, blur: 0, spread: 10, alpha: 1, color: "#dfe9e6" }),
+              L({ dist: 0, blur: 0, spread: 15, alpha: 0.3, color: c }),
+              L({ dist: 0, blur: 0, spread: 20, alpha: 1, color: "#dfe9e6" }),
+              L({ dist: 0, blur: 1, spread: 25, alpha: 0.15, color: c }),
             ];
           },
         },
@@ -2478,7 +2593,7 @@
         if (dark) {
           scene(canvas, shade(canvas, 0.045), pick([14, 16, 18]));
           const roll = Math.random();
-          if (roll < 0.4) {
+          if (roll < 0.3) {
             // glow — a single vivid hue ringing outward
             const h = rr(0, 360),
               c = (a) => hslToHex(h, 0.85, a);
@@ -2488,7 +2603,7 @@
               L({ dist: 0, blur: rr(40, 60), alpha: 0.4, color: c(0.55) }),
               L({ dist: 0, blur: rr(90, 130), alpha: 0.3, color: c(0.5) }),
             ];
-          } else if (roll < 0.7) {
+          } else if (roll < 0.55) {
             // aura — two hues on opposite sides of the light
             const h = rr(0, 360),
               d = rr(10, 22),
@@ -2507,6 +2622,18 @@
                 color: hslToHex(h + rr(120, 220), 0.85, 0.62),
               }),
             ];
+          } else if (roll < 0.8) {
+            // prism — the shadow refracts, hue stepping as it falls away
+            const h0 = rr(0, 360),
+              step = pick([-1, 1]) * rr(28, 55);
+            S.layers = [0, 1, 2, 3].map((i) =>
+              L({
+                dist: Math.round(6 + i * rr(6, 9)),
+                blur: 12 + i * 6,
+                alpha: Math.round((0.6 - i * 0.08) * 100) / 100,
+                color: hslToHex(h0 + i * step, 0.8, 0.6),
+              }),
+            );
           } else {
             // deep soft shadow on dark
             S.layers = forge({
@@ -2524,7 +2651,7 @@
           const [cr, cg, cb] = hexToRgb(canvas),
             [ch] = rgbToHsl(cr, cg, cb);
           const ink = hslToHex(ch + rr(-25, 25), rr(0.15, 0.4), rr(0.12, 0.26));
-          if (roll < 0.6) {
+          if (roll < 0.4) {
             // soft cascade
             scene(
               canvas,
@@ -2540,8 +2667,9 @@
               contact: Math.random() < 0.7,
               color: ink,
             });
-          } else if (roll < 0.72) {
-            // hard pop
+          } else if (roll < 0.45) {
+            // hard pop — like slice, the flat offset wants a diagonal sun
+            S.light.a = (pick([45, 135, 225, 315]) + rr(-20, 20)) * DEG;
             scene(canvas, shade(canvas, 0.16), pick([4, 6, 10]));
             S.layers = [
               L({
@@ -2551,7 +2679,7 @@
                 color: shade(ink, -0.06),
               }),
             ];
-          } else if (roll < 0.84) {
+          } else if (roll < 0.6) {
             // long shadow
             scene(canvas, shade(canvas, 0.18), pick([6, 10]));
             const c = shade(canvas, -0.22),
@@ -2568,17 +2696,101 @@
                 }),
               );
             S.layers = out;
-          } else if (roll < 0.92) {
-            // slice — hard double
+          } else if (roll < 0.7) {
+            // slice — hard double; the crop only reads well when the sun
+            // sits at a diagonal, so keep it off the vertical/horizontal
+            S.light.a = (pick([45, 135, 225, 315]) + rr(-20, 20)) * DEG;
             scene(canvas, "#ffffff", pick([6, 10]));
+            const g = Math.round(rr(5, 9));
             S.layers = [
-              L({ dist: 6, blur: 0, alpha: 1, color: canvas }),
+              L({ dist: g, blur: 0, alpha: 1, color: canvas }),
               L({
-                dist: 12,
+                dist: g * 2,
                 blur: 0,
                 alpha: 1,
                 color: hslToHex(ch + rr(140, 220), 0.7, 0.6),
               }),
+            ];
+          } else if (roll < 0.8) {
+            // riso — two misregistered inks at fixed offsets
+            scene(canvas, shade(canvas, rr(0.05, 0.1)), pick([6, 8, 10]));
+            const h1 = rr(0, 360),
+              a1 = rr(0, 360) * DEG,
+              a2 = a1 + rr(1.6, 3.1),
+              m1 = rr(4, 9),
+              m2 = rr(4, 9);
+            S.layers = [
+              L({
+                follow: false,
+                x: Math.round(Math.cos(a1) * m1),
+                y: Math.round(Math.sin(a1) * m1),
+                blur: 0,
+                alpha: rr(0.45, 0.65),
+                color: hslToHex(h1, 0.72, 0.5),
+              }),
+              L({
+                follow: false,
+                x: Math.round(Math.cos(a2) * m2),
+                y: Math.round(Math.sin(a2) * m2),
+                blur: 0,
+                alpha: rr(0.45, 0.65),
+                color: hslToHex(h1 + rr(120, 240), 0.72, 0.5),
+              }),
+            ];
+          } else if (roll < 0.85) {
+            // deck — opaque canvas-tinted sheets stacked straight down
+            scene(canvas, "#ffffff", pick([8, 10, 14]));
+            const g = Math.round(rr(8, 12)),
+              s = Math.round(rr(4, 7));
+            S.layers = [
+              L({
+                follow: false,
+                x: 0,
+                y: g,
+                blur: 0,
+                spread: -s,
+                alpha: 1,
+                color: shade(canvas, 0.09),
+              }),
+              L({
+                follow: false,
+                x: 0,
+                y: g + 1,
+                blur: 2,
+                spread: -s,
+                alpha: 0.3,
+                color: ink,
+              }),
+              L({
+                follow: false,
+                x: 0,
+                y: g * 2,
+                blur: 0,
+                spread: -s * 2,
+                alpha: 1,
+                color: shade(canvas, 0.05),
+              }),
+              L({
+                follow: false,
+                x: 0,
+                y: g * 2 + 1,
+                blur: 3,
+                spread: -s * 2,
+                alpha: 0.3,
+                color: ink,
+              }),
+            ];
+          } else if (roll < 0.9) {
+            // sonar — ink rings with canvas-colored gaps; needs the pill
+            scene(canvas, "#ffffff", 999);
+            const w = Math.round(rr(4, 7)),
+              rc = hslToHex(ch + rr(-30, 30), rr(0.4, 0.7), rr(0.22, 0.34));
+            S.layers = [
+              L({ dist: 0, blur: 0, spread: w, alpha: 0.5, color: rc }),
+              L({ dist: 0, blur: 0, spread: w * 2, alpha: 1, color: canvas }),
+              L({ dist: 0, blur: 0, spread: w * 3, alpha: 0.3, color: rc }),
+              L({ dist: 0, blur: 0, spread: w * 4, alpha: 1, color: canvas }),
+              L({ dist: 0, blur: 1, spread: w * 5, alpha: 0.15, color: rc }),
             ];
           } else {
             // neumorph
