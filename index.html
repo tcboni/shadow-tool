@@ -610,10 +610,25 @@
       .llist {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-      }
-      .llist {
         gap: 6px;
+        max-height: 384px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        --ftop: 0px;
+        --fbot: 0px;
+        mask-image: linear-gradient(
+          180deg,
+          transparent,
+          #000 var(--ftop),
+          #000 calc(100% - var(--fbot)),
+          transparent
+        );
+      }
+      .llist.ft {
+        --ftop: 16px;
+      }
+      .llist.fb {
+        --fbot: 16px;
       }
       .lrow {
         display: flex;
@@ -1874,6 +1889,20 @@
             })
             .join("") ||
           '<p class="hint">no layers. shadowless, like a vampire. add one below.</p>';
+        if (S.sel !== lastSel) {
+          lastSel = S.sel;
+          el.querySelector(".lrow.sel")?.scrollIntoView({ block: "nearest" });
+        }
+        renderListFades();
+      }
+      let lastSel = -1;
+      function renderListFades() {
+        const el = $("llist");
+        el.classList.toggle("ft", el.scrollTop > 2);
+        el.classList.toggle(
+          "fb",
+          el.scrollTop + el.clientHeight < el.scrollHeight - 2,
+        );
       }
       function renderLayerPanel() {
         const p = $("layerPanel"),
@@ -2174,6 +2203,7 @@
         S.sel = S.layers.length - 1;
         update();
       });
+      $("llist").addEventListener("scroll", renderListFades, { passive: true });
       $("llist").addEventListener("click", (e) => {
         const b = e.target.closest("[data-act]");
         if (!b || b.disabled) return;
