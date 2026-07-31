@@ -1380,7 +1380,7 @@
       });
       let S = DEFAULTS();
 
-      const STORE = "shadowtool.v2";
+      const STORE = "shadow-tool";
       function save() {
         try {
           localStorage.setItem(STORE, JSON.stringify(S));
@@ -2209,8 +2209,7 @@
         // toward/away sign instead of snapping the shadow to the sun
         l.dist = clamp(
           Math.round(
-            -(l.x * Math.cos(S.light.a) + l.y * Math.sin(S.light.a)) /
-              throwK(),
+            -(l.x * Math.cos(S.light.a) + l.y * Math.sin(S.light.a)) / throwK(),
           ),
           -120,
           160,
