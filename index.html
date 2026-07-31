@@ -607,6 +607,16 @@
       }
 
       /* ---------- layers ---------- */
+      @property --ftop {
+        syntax: "<length>";
+        inherits: false;
+        initial-value: 0px;
+      }
+      @property --fbot {
+        syntax: "<length>";
+        inherits: false;
+        initial-value: 0px;
+      }
       .llist {
         display: flex;
         flex-direction: column;
@@ -614,8 +624,6 @@
         max-height: 384px;
         overflow-y: auto;
         scrollbar-width: thin;
-        --ftop: 0px;
-        --fbot: 0px;
         mask-image: linear-gradient(
           180deg,
           transparent,
@@ -623,12 +631,23 @@
           #000 calc(100% - var(--fbot)),
           transparent
         );
+        animation: lfades linear;
+        animation-timeline: scroll(self);
       }
-      .llist.ft {
-        --ftop: 16px;
-      }
-      .llist.fb {
-        --fbot: 16px;
+      @keyframes lfades {
+        0% {
+          --ftop: 0px;
+          --fbot: 16px;
+        }
+        10%,
+        90% {
+          --ftop: 16px;
+          --fbot: 16px;
+        }
+        100% {
+          --ftop: 16px;
+          --fbot: 0px;
+        }
       }
       .lrow {
         display: flex;
@@ -1893,17 +1912,8 @@
           lastSel = S.sel;
           el.querySelector(".lrow.sel")?.scrollIntoView({ block: "nearest" });
         }
-        renderListFades();
       }
       let lastSel = -1;
-      function renderListFades() {
-        const el = $("llist");
-        el.classList.toggle("ft", el.scrollTop > 2);
-        el.classList.toggle(
-          "fb",
-          el.scrollTop + el.clientHeight < el.scrollHeight - 2,
-        );
-      }
       function renderLayerPanel() {
         const p = $("layerPanel"),
           l = S.layers[S.sel];
@@ -2203,7 +2213,6 @@
         S.sel = S.layers.length - 1;
         update();
       });
-      $("llist").addEventListener("scroll", renderListFades, { passive: true });
       $("llist").addEventListener("click", (e) => {
         const b = e.target.closest("[data-act]");
         if (!b || b.disabled) return;
