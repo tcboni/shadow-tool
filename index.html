@@ -600,10 +600,32 @@
       #bShare {
         margin-left: auto;
       }
-      #bShare.done,
-      #bCopy.done {
-        border-color: var(--amber);
-        color: var(--amber);
+      #toast {
+        position: fixed;
+        left: 50%;
+        bottom: 26px;
+        transform: translateX(-50%) translateY(8px);
+        background: var(--panel);
+        color: var(--ink);
+        border: 1px solid var(--line2);
+        border-radius: 4px;
+        padding: 8px 14px;
+        font: 600 11px/1 var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        box-shadow:
+          0 2px 6px rgba(0, 0, 0, 0.35),
+          0 8px 28px rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.18s,
+          transform 0.18s;
+        z-index: 99;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
       }
 
       /* ---------- layers ---------- */
@@ -905,7 +927,7 @@
           <a
             class="gh tip"
             data-tip="source on github"
-            href="https://github.com/tcboni/gradient-tool"
+            href="https://github.com/tcboni/shadow-tool"
             target="_blank"
             rel="noopener"
             aria-label="Shadow Tool on GitHub"
@@ -1085,10 +1107,42 @@
                 id="bShare"
                 data-tip="copy a shareable link with this shadow encoded in it"
               >
-                Copy link
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M6.7 8.7a3.3 3.3 0 0 0 5 .3l2-2a3.3 3.3 0 0 0-4.7-4.7L7.9 3.4"
+                  />
+                  <path
+                    d="M9.3 7.3a3.3 3.3 0 0 0-5-.3l-2 2a3.3 3.3 0 0 0 4.7 4.7l1.1-1.1"
+                  />
+                </svg>
+                Share link
               </button>
               <button class="btn tip" id="bCopy" data-tip="copy to clipboard">
-                Copy
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  aria-hidden="true"
+                >
+                  <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+                  <path
+                    d="M11 5.5V4a1.5 1.5 0 0 0-1.5-1.5h-5A1.5 1.5 0 0 0 3 4v5a1.5 1.5 0 0 0 1.5 1.5h1"
+                  />
+                </svg>
+                Copy code
               </button>
             </div>
             <pre><code id="code"></code></pre>
@@ -1309,6 +1363,7 @@
     </div>
 
     <div class="sr" role="status" aria-live="polite" id="live"></div>
+    <div id="toast" role="status"></div>
 
     <script>
       "use strict";
@@ -2343,18 +2398,17 @@
           return ok;
         }
       }
-      function flash(btn, okText, idleText, ok) {
-        btn.textContent = ok ? okText : "Copy failed";
-        btn.classList.add("done");
-        setTimeout(() => {
-          btn.textContent = idleText;
-          btn.classList.remove("done");
-        }, 1400);
+      let toastTimer = 0;
+      function toast(msg) {
+        const t = $("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove("show"), 1700);
       }
       $("bCopy").addEventListener("click", async () => {
         const ok = await copyText(outputText());
-        flash($("bCopy"), "Copied ✓", "Copy", ok);
-        live.textContent = ok ? "CSS copied to clipboard" : "Copy failed";
+        toast(ok ? "code copied" : "copy failed");
       });
 
       // state <-> base64url for shareable #s= links
@@ -2390,8 +2444,7 @@
       $("bShare").addEventListener("click", async () => {
         const link = location.href.split("#")[0] + "#s=" + encodeState();
         const ok = await copyText(link);
-        flash($("bShare"), "Link ✓", "Copy link", ok);
-        live.textContent = ok ? "Share link copied" : "Copy failed";
+        toast(ok ? "share link copied" : "copy failed");
       });
 
       /* ============================== random ============================== */
@@ -2541,7 +2594,7 @@
         }
         S.sel = 0;
         update();
-        live.textContent = "Rolled a new shadow";
+        toast("Randomized");
       }
       $("bRandom").addEventListener("click", randomize);
 
