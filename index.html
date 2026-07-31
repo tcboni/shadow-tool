@@ -1642,7 +1642,6 @@
       }
 
       /* ============================== presets ============================== */
-      const AMBER = "#f0b83d";
       function scene(canvas, fill, radius, finish) {
         Object.assign(S.scene, {
           canvas,
@@ -1717,13 +1716,13 @@
         {
           name: "Cel",
           tile: "#1b4d3e",
-          sh: "2px 2px 0 #1b4d3e, 4px 4px 0 " + AMBER,
+          sh: "2px 2px 0 #1b4d3e, 4px 4px 0 #f0b83d",
           make() {
             scene("#1b4d3e", "#ffffff", 10);
             lightAt(-135, 0.5);
             S.layers = [
               L({ dist: 6, blur: 0, alpha: 1, color: "#1b4d3e" }),
-              L({ dist: 12, blur: 0, alpha: 1, color: AMBER }),
+              L({ dist: 12, blur: 0, alpha: 1, color: "#f0b83d" }),
             ];
           },
         },
@@ -1779,12 +1778,12 @@
         {
           name: "Ring",
           tile: "#151a17",
-          sh: "0 0 0 3px " + AMBER,
+          sh: "0 0 0 3px #f0b83d",
           make() {
             scene("#151a17", "#1d231f", 14);
             lightAt(-90, 0.5);
             S.layers = [
-              L({ dist: 0, blur: 0, spread: 5, alpha: 1, color: AMBER }),
+              L({ dist: 0, blur: 0, spread: 5, alpha: 1, color: "#f0b83d" }),
               L({ dist: 10, blur: 26, alpha: 0.5, color: "#000000" }),
             ];
           },
