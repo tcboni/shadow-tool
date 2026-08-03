@@ -267,6 +267,12 @@
       .ck.grow {
         flex: 1;
       }
+      #subjectPanel .inline {
+        margin: 11px 0;
+      }
+      #rowText input {
+        width: 100%;
+      }
       input[type="range"] {
         -webkit-appearance: none;
         appearance: none;
@@ -978,72 +984,16 @@
         <section class="col colM" aria-label="Preview and output">
           <div class="stagebar">
             <div class="seg" role="group" aria-label="Shadow target">
-              <button
-                data-mode="box"
-                class="tip"
-                data-tip="box-shadow on a card"
-                aria-pressed="true"
-              >
-                Box
-              </button>
-              <button
-                data-mode="drop"
-                class="tip"
-                data-tip="filter: drop-shadow() — follows transparency, holes and all"
-                aria-pressed="false"
-              >
-                Shape
-              </button>
-              <button
-                data-mode="text"
-                class="tip"
-                data-tip="text-shadow on live type"
-                aria-pressed="false"
-              >
-                Text
-              </button>
+              <button data-mode="box" aria-pressed="true">Box</button>
+              <button data-mode="drop" aria-pressed="false">Shape</button>
+              <button data-mode="text" aria-pressed="false">Text</button>
             </div>
             <span class="tlabel">bg</span>
             <input
               type="color"
               id="inCanvas"
               value="#e8e2d4"
-              class="tip"
-              data-tip="stage background"
               aria-label="Stage background color"
-            />
-            <span class="tlabel" id="fillLabel">fill</span>
-            <input
-              type="color"
-              id="inElBg"
-              value="#faf7f0"
-              class="tip"
-              data-tip="subject color"
-              aria-label="Subject fill color"
-            />
-            <select
-              id="selFinish"
-              class="tip"
-              data-tip="a subtle surface gradient that stays lit toward the sun"
-              aria-label="Subject surface finish"
-            >
-              <option value="flat">flat</option>
-              <option value="convex">convex</option>
-              <option value="concave">concave</option>
-            </select>
-            <select id="selShape" hidden aria-label="Preview shape">
-              <option value="star">star</option>
-              <option value="bolt">bolt</option>
-              <option value="blob">blob</option>
-              <option value="ring">ring</option>
-            </select>
-            <input
-              type="text"
-              id="inText"
-              value="Umbra"
-              maxlength="18"
-              hidden
-              aria-label="Preview text"
             />
             <span class="readout" id="readLight"
               >☀ <b>225°</b> · elev <b>50%</b> · throw ×<b>1.0</b></span
@@ -1375,8 +1325,162 @@
             </div>
           </div>
 
+          <div class="panel" id="subjectPanel">
+            <h2 class="ph"><b>04</b> Subject</h2>
+            <div class="inline">
+              <span class="ck grow"><span id="fillLabel">Fill</span></span>
+              <div class="cwell">
+                <input
+                  type="color"
+                  id="inElBg"
+                  value="#faf7f0"
+                  aria-label="Subject fill color"
+                />
+                <input
+                  type="text"
+                  id="inElBgHex"
+                  class="hex"
+                  value="#faf7f0"
+                  spellcheck="false"
+                  autocomplete="off"
+                  aria-label="Subject fill color as hex"
+                />
+              </div>
+            </div>
+            <div
+              class="inline tip"
+              id="rowFinish"
+              data-tip="a subtle surface gradient that stays lit toward the sun"
+            >
+              <span class="ck grow"><span>Finish</span></span>
+              <div class="seg" role="group" aria-label="Surface finish">
+                <button data-finish="flat" aria-pressed="true">flat</button>
+                <button data-finish="convex" aria-pressed="false">
+                  convex
+                </button>
+                <button data-finish="concave" aria-pressed="false">
+                  concave
+                </button>
+              </div>
+            </div>
+            <label
+              class="ctl tip"
+              id="rowDepth"
+              data-tip="how strongly the surface curves — the span of the gradient"
+            >
+              <span class="ck"
+                ><span>Depth</span><output id="vDepth">7%</output></span
+              >
+              <input
+                type="range"
+                id="inDepth"
+                min="1"
+                max="20"
+                step="1"
+                aria-label="Finish depth"
+              />
+            </label>
+            <div
+              class="inline tip"
+              id="rowPill"
+              data-tip="pill rounds the corners as far as they'll go"
+            >
+              <span class="ck grow"><span>Corners</span></span>
+              <div class="seg" role="group" aria-label="Corner style">
+                <button id="bPillOff" aria-pressed="true">radius</button>
+                <button id="bPillOn" aria-pressed="false">pill</button>
+              </div>
+            </div>
+            <label class="ctl" id="rowRadius">
+              <span class="ck"
+                ><span>Radius</span><output id="vRadius">18px</output></span
+              >
+              <input
+                type="range"
+                id="inRadius"
+                min="0"
+                max="80"
+                step="1"
+                aria-label="Corner radius"
+              />
+            </label>
+            <label class="ctl" id="rowW">
+              <span class="ck"
+                ><span>Width</span><output id="vW">260px</output></span
+              >
+              <input
+                type="range"
+                id="inW"
+                min="80"
+                max="380"
+                step="2"
+                aria-label="Subject width"
+              />
+            </label>
+            <label class="ctl" id="rowH">
+              <span class="ck"
+                ><span>Height</span><output id="vH">160px</output></span
+              >
+              <input
+                type="range"
+                id="inH"
+                min="60"
+                max="280"
+                step="2"
+                aria-label="Subject height"
+              />
+            </label>
+            <div class="inline" id="rowShape">
+              <span class="ck grow"><span>Shape</span></span>
+              <div class="seg" role="group" aria-label="Preview shape">
+                <button data-shape="star" aria-pressed="true">star</button>
+                <button data-shape="bolt" aria-pressed="false">bolt</button>
+                <button data-shape="blob" aria-pressed="false">blob</button>
+                <button data-shape="ring" aria-pressed="false">ring</button>
+              </div>
+            </div>
+            <label class="ctl" id="rowSize">
+              <span class="ck"
+                ><span>Size</span><output id="vSize">260px</output></span
+              >
+              <input
+                type="range"
+                id="inSize"
+                min="100"
+                max="300"
+                step="2"
+                aria-label="Shape size"
+              />
+            </label>
+            <label class="ctl" id="rowText">
+              <span class="ck"><span>Text</span></span>
+              <input
+                type="text"
+                id="inText"
+                value="Umbra"
+                maxlength="18"
+                spellcheck="false"
+                autocomplete="off"
+                aria-label="Preview text"
+              />
+            </label>
+            <label class="ctl" id="rowFont">
+              <span class="ck"
+                ><span>Font size</span><output id="vFont">92px</output></span
+              >
+              <input
+                type="range"
+                id="inFont"
+                min="24"
+                max="160"
+                step="1"
+                aria-label="Font size"
+              />
+            </label>
+          </div>
+
           <div class="panel">
-            <h2 class="ph"><b>04</b> Presets</h2>
+            <h2 class="ph"><b>05</b> Presets</h2>
             <div
               class="chips"
               id="chips"
@@ -1520,6 +1624,7 @@
           text: "Umbra",
           shape: "star",
           finish: "flat",
+          depth: 0.07, // gradient span for convex/concave finishes
         },
         layers: [],
         sel: 0,
@@ -1595,19 +1700,58 @@
       }
 
       /* ============================== output ============================== */
+      const PILL = 999; // radius sentinel: as round as the box allows
+      function isPill(sc) {
+        return sc.radius >= PILL;
+      }
+      function radiusCss(sc) {
+        return isPill(sc) ? "9999px" : px(sc.radius);
+      }
+      function surfaceCss(sc) {
+        // the subject's face — one source of truth for preview and export
+        if (sc.finish === "flat") return sc.fill;
+        const k = sc.finish === "convex" ? sc.depth : -sc.depth;
+        return `linear-gradient(${gradAngleDeg()}deg, ${shade(sc.fill, -k)}, ${shade(sc.fill, k)})`;
+      }
       function outputText() {
-        const m = S.mode;
+        const m = S.mode,
+          sc = S.scene;
         const prop =
           m === "box" ? "box-shadow" : m === "text" ? "text-shadow" : "filter";
         const ls = activeLayers().map((l) => layerCss(l, m));
         const joined = ls.length
           ? "\n  " + ls.join(m === "drop" ? "\n  " : ",\n  ")
           : " none";
-        if (S.fmt === "css") return `${prop}:${joined};`;
+        // the subject's own declarations, so the paste reproduces the preview
+        const surf =
+          m === "box"
+            ? [
+                `background: ${surfaceCss(sc)};`,
+                `border-radius: ${radiusCss(sc)};`,
+              ]
+            : m === "text"
+              ? [`color: ${sc.fill};`]
+              : [];
+        if (S.fmt === "css")
+          return (
+            (surf.length ? surf.join("\n") + "\n\n" : "") + `${prop}:${joined};`
+          );
         if (S.fmt === "var") {
-          return `:root {\n  --shadow:${joined.replace(/\n/g, "\n  ")};\n}\n\n.your-element {\n  ${prop}: var(--shadow);\n}`;
+          const use = surf.map((s) => `  ${s}\n`).join("");
+          return `:root {\n  --shadow:${joined.replace(/\n/g, "\n  ")};\n}\n\n.your-element {\n${use}  ${prop}: var(--shadow);\n}`;
         }
         // tailwind arbitrary value — underscores for spaces, hex8 colors
+        const twSurf =
+          m === "box"
+            ? `bg-[${surfaceCss(sc).replace(/\s+/g, "")}] ` +
+              (isPill(sc)
+                ? "rounded-full "
+                : sc.radius === 0
+                  ? "rounded-none "
+                  : `rounded-[${px(sc.radius)}] `)
+            : m === "text"
+              ? `text-[${sc.fill}] `
+              : "";
         const tls = activeLayers().map((l) => {
           const v = layerVec(l),
             c = hex8(l.color, l.alpha);
@@ -1616,9 +1760,10 @@
           if (m === "drop") return `drop-shadow(${o}_${c})`;
           return `${l.inset ? "inset_" : ""}${o}_${px(l.spread)}_${c}`;
         });
-        if (!tls.length) return m === "box" ? "shadow-none" : "/* no layers */";
-        if (m === "box") return `shadow-[${tls.join(",")}]`;
-        if (m === "text") return `[text-shadow:${tls.join(",")}]`;
+        if (!tls.length)
+          return m === "box" ? `${twSurf}shadow-none` : "/* no layers */";
+        if (m === "box") return `${twSurf}shadow-[${tls.join(",")}]`;
+        if (m === "text") return `${twSurf}[text-shadow:${tls.join(",")}]`;
         return `[filter:${tls.join("_")}]`;
       }
       function highlight(src) {
@@ -1668,13 +1813,10 @@
       }
 
       /* ============================== presets ============================== */
-      function scene(canvas, fill, radius, finish) {
-        Object.assign(S.scene, {
-          canvas,
-          fill,
-          radius: radius || 18,
-          finish: finish || "flat",
-        });
+      function scene(over) {
+        // presets describe the whole subject — anything unspecified resets,
+        // so a preset always lands on the same scene regardless of prior edits
+        S.scene = Object.assign(DEFAULTS().scene, over);
       }
       function lightAt(deg, d) {
         S.light.a = deg * DEG;
@@ -1686,7 +1828,7 @@
           tile: "#efe9dd",
           sh: "0 2px 4px rgba(0,0,0,.45)",
           make() {
-            scene("#efe9dd", "#ffffff");
+            scene({ canvas: "#efe9dd", fill: "#ffffff" });
             lightAt(-90, 0.4);
             const c = inkFor("#efe9dd");
             S.layers = [
@@ -1700,7 +1842,7 @@
           tile: "#eceff1",
           sh: "0 2px 3px -1px rgba(0,0,0,.4), 0 3px 6px rgba(0,0,0,.3)",
           make() {
-            scene("#eceff1", "#ffffff");
+            scene({ canvas: "#eceff1", fill: "#ffffff" });
             lightAt(-135, 0.5);
             const c = inkFor("#eceff1");
             S.layers = [
@@ -1715,7 +1857,7 @@
           tile: "#dde3ea",
           sh: "0 5px 10px rgba(0,0,0,.5)",
           make() {
-            scene("#dde3ea", "#fdfdfc");
+            scene({ canvas: "#dde3ea", fill: "#fdfdfc" });
             lightAt(-135, 0.72);
             const c = inkFor("#dde3ea");
             S.layers = forge({
@@ -1735,7 +1877,7 @@
           tile: "#f5c84c",
           sh: "3px 3px 0 #17130d",
           make() {
-            scene("#f5c84c", "#fdf6e3", 6);
+            scene({ canvas: "#f5c84c", fill: "#fdf6e3", radius: 6 });
             lightAt(-135, 0.55);
             S.layers = [L({ dist: 9, blur: 0, alpha: 1, color: "#241f16" })];
           },
@@ -1745,7 +1887,7 @@
           tile: "#1b4d3e",
           sh: "2px 2px 0 #1b4d3e, 4px 4px 0 #f0b83d",
           make() {
-            scene("#1b4d3e", "#ffffff", 10);
+            scene({ canvas: "#1b4d3e", fill: "#ffffff", radius: 10 });
             lightAt(-135, 0.5);
             S.layers = [
               L({ dist: 6, blur: 0, alpha: 1, color: "#1b4d3e" }),
@@ -1758,7 +1900,7 @@
           tile: "#e07856",
           sh: "1px 1px 0 rgba(0,0,0,.5), 3px 3px 0 rgba(0,0,0,.3), 5px 5px 0 rgba(0,0,0,.15)",
           make() {
-            scene("#e07856", "#f8ecdd", 10);
+            scene({ canvas: "#e07856", fill: "#f8ecdd", radius: 10 });
             lightAt(-135, 0.78);
             const c = shade("#e07856", -0.22),
               out = [];
@@ -1779,7 +1921,7 @@
           tile: "#101018",
           sh: "0 0 7px #59d4ff",
           make() {
-            scene("#111015", "#181722", 16);
+            scene({ canvas: "#111015", fill: "#181722", radius: 16 });
             lightAt(-90, 0.5);
             S.layers = [
               L({ dist: 0, blur: 6, alpha: 0.9, color: "#8be9ff" }),
@@ -1794,7 +1936,7 @@
           tile: "#141220",
           sh: "-2px -2px 6px rgba(57,208,255,.8), 2px 2px 6px rgba(255,90,162,.8)",
           make() {
-            scene("#14121a", "#1c1926", 16);
+            scene({ canvas: "#14121a", fill: "#1c1926", radius: 16 });
             lightAt(-45, 0.5);
             S.layers = [
               L({ dist: 16, blur: 44, alpha: 0.6, color: "#ff5aa2" }),
@@ -1807,7 +1949,7 @@
           tile: "#151a17",
           sh: "0 0 0 3px #f0b83d",
           make() {
-            scene("#151a17", "#1d231f", 14);
+            scene({ canvas: "#151a17", fill: "#1d231f", radius: 14 });
             lightAt(-90, 0.5);
             S.layers = [
               L({ dist: 0, blur: 0, spread: 5, alpha: 1, color: "#f0b83d" }),
@@ -1820,7 +1962,12 @@
           tile: "#e0e0e0",
           sh: "2px 2px 5px #b8b8b8, -2px -2px 5px #ffffff",
           make() {
-            scene("#e0e0e0", "#e0e0e0", 28, "convex");
+            scene({
+              canvas: "#e0e0e0",
+              fill: "#e0e0e0",
+              radius: 28,
+              finish: "convex",
+            });
             lightAt(-135, 0.5);
             S.layers = [
               L({
@@ -1843,7 +1990,7 @@
           tile: "#cfd8cf",
           sh: "inset 2px 2px 4px rgba(0,0,0,.45)",
           make() {
-            scene("#cfd8cf", "#e4eae4", 14);
+            scene({ canvas: "#cfd8cf", fill: "#e4eae4", radius: 14 });
             lightAt(-90, 0.5);
             const c = inkFor("#cfd8cf");
             S.layers = [
@@ -1865,7 +2012,7 @@
           sh: "2px 2px 0 rgba(232,80,60,.65), -2px 3px 0 rgba(43,107,216,.65)",
           make() {
             // misregistered print inks — fixed offsets that ignore the light
-            scene("#f4edda", "#fbf6e9", 8);
+            scene({ canvas: "#f4edda", fill: "#fbf6e9", radius: 8 });
             lightAt(-135, 0.5);
             S.layers = [
               L({
@@ -1894,7 +2041,7 @@
           make() {
             // opaque negative-spread layers draw fake sheets stacked
             // beneath the card, each with its own thin edge shadow
-            scene("#d9d4e8", "#ffffff", 10);
+            scene({ canvas: "#d9d4e8", fill: "#ffffff", radius: 10 });
             lightAt(-90, 0.5);
             const c = inkFor("#d9d4e8");
             S.layers = [
@@ -1944,7 +2091,7 @@
           make() {
             // the shadow refracts — each step further out shifts hue,
             // trailing a spectrum away from the light
-            scene("#131217", "#1b1a21", 14);
+            scene({ canvas: "#131217", fill: "#1b1a21", radius: 14 });
             lightAt(-135, 0.55);
             S.layers = [
               L({ dist: 6, blur: 12, alpha: 0.6, color: "#ff4fd8" }),
@@ -1961,7 +2108,7 @@
           make() {
             // concentric rings with gaps — canvas-colored spreads between
             // the ink rings vanish into the background, like the Slice crop
-            scene("#dfe9e6", "#ffffff", 999);
+            scene({ canvas: "#dfe9e6", fill: "#ffffff", radius: 999 });
             lightAt(-90, 0.5);
             const c = "#1f5c50";
             S.layers = [
@@ -2034,14 +2181,10 @@
           Object.assign(subject.style, {
             width: sc.w + "px",
             height: sc.h + "px",
-            borderRadius: sc.radius + "px",
+            borderRadius: radiusCss(sc),
+            background: surfaceCss(sc),
             boxShadow: val === "none" ? "none" : val,
           });
-          if (sc.finish === "flat") subject.style.background = sc.fill;
-          else {
-            const k = sc.finish === "convex" ? 0.07 : -0.07;
-            subject.style.background = `linear-gradient(${gradAngleDeg()}deg, ${shade(sc.fill, -k)}, ${shade(sc.fill, k)})`;
-          }
         } else if (S.mode === "text") {
           subject.textContent = sc.text || "Umbra";
           Object.assign(subject.style, {
@@ -2186,16 +2329,50 @@
         }, 180);
       }
       function renderScene() {
-        const sc = S.scene;
+        const sc = S.scene,
+          m = S.mode,
+          pill = isPill(sc);
         if (held !== $("inCanvas")) $("inCanvas").value = sc.canvas;
         if (held !== $("inElBg")) $("inElBg").value = sc.fill;
+        if (document.activeElement !== $("inElBgHex"))
+          $("inElBgHex").value = sc.fill;
         if (document.activeElement !== $("inText")) $("inText").value = sc.text;
-        $("selShape").value = sc.shape;
-        $("selFinish").value = sc.finish;
-        $("selFinish").hidden = S.mode !== "box";
-        $("selShape").hidden = S.mode !== "drop";
-        $("inText").hidden = S.mode !== "text";
-        $("fillLabel").textContent = S.mode === "text" ? "ink" : "fill";
+        $("fillLabel").textContent = m === "text" ? "Ink" : "Fill";
+        document
+          .querySelectorAll("#rowFinish [data-finish]")
+          .forEach((b) =>
+            b.setAttribute(
+              "aria-pressed",
+              String(b.dataset.finish === sc.finish),
+            ),
+          );
+        document
+          .querySelectorAll("#rowShape [data-shape]")
+          .forEach((b) =>
+            b.setAttribute(
+              "aria-pressed",
+              String(b.dataset.shape === sc.shape),
+            ),
+          );
+        $("bPillOff").setAttribute("aria-pressed", String(!pill));
+        $("bPillOn").setAttribute("aria-pressed", String(pill));
+        const dpct = Math.round(sc.depth * 100);
+        setCtl("inDepth", "vDepth", dpct, dpct + "%");
+        setCtl("inRadius", "vRadius", sc.radius, px(sc.radius));
+        setCtl("inW", "vW", sc.w, px(sc.w));
+        setCtl("inH", "vH", sc.h, px(sc.h));
+        setCtl("inSize", "vSize", sc.w, px(sc.w));
+        setCtl("inFont", "vFont", sc.font, px(sc.font));
+        $("rowFinish").hidden = m !== "box";
+        $("rowDepth").hidden = m !== "box" || sc.finish === "flat";
+        $("rowPill").hidden = m !== "box";
+        $("rowRadius").hidden = m !== "box" || pill;
+        $("rowW").hidden = m !== "box";
+        $("rowH").hidden = m !== "box";
+        $("rowShape").hidden = m !== "drop";
+        $("rowSize").hidden = m !== "drop";
+        $("rowText").hidden = m !== "text";
+        $("rowFont").hidden = m !== "text";
       }
       function renderModeUi() {
         document
@@ -2381,16 +2558,61 @@
         S.scene.fill = e.target.value;
         update();
       });
+      $("inElBgHex").addEventListener("input", (e) => {
+        const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(e.target.value.trim());
+        if (!m) return;
+        let h = m[1].toLowerCase();
+        if (h.length === 3) h = h.replace(/./g, "$&$&");
+        S.scene.fill = "#" + h;
+        update();
+      });
+      $("inElBgHex").addEventListener("change", (e) => {
+        e.target.value = S.scene.fill;
+      });
       $("inText").addEventListener("input", (e) => {
         S.scene.text = e.target.value;
         update();
       });
-      $("selShape").addEventListener("change", (e) => {
-        S.scene.shape = e.target.value;
+      document.querySelectorAll("#rowFinish [data-finish]").forEach((b) =>
+        b.addEventListener("click", () => {
+          S.scene.finish = b.dataset.finish;
+          update();
+        }),
+      );
+      document.querySelectorAll("#rowShape [data-shape]").forEach((b) =>
+        b.addEventListener("click", () => {
+          S.scene.shape = b.dataset.shape;
+          update();
+        }),
+      );
+      onRange("inDepth", (v) => {
+        S.scene.depth = v / 100;
+      });
+      onRange("inRadius", (v) => {
+        S.scene.radius = v;
+      });
+      onRange("inW", (v) => {
+        S.scene.w = v;
+      });
+      onRange("inH", (v) => {
+        S.scene.h = v;
+      });
+      onRange("inSize", (v) => {
+        S.scene.w = v;
+      });
+      onRange("inFont", (v) => {
+        S.scene.font = v;
+      });
+      let prePill = 18; // radius to restore when pill is toggled back off
+      $("bPillOn").addEventListener("click", () => {
+        if (isPill(S.scene)) return;
+        prePill = S.scene.radius;
+        S.scene.radius = PILL;
         update();
       });
-      $("selFinish").addEventListener("change", (e) => {
-        S.scene.finish = e.target.value;
+      $("bPillOff").addEventListener("click", () => {
+        if (!isPill(S.scene)) return;
+        S.scene.radius = prePill;
         update();
       });
 
@@ -2640,7 +2862,11 @@
         const dark = Math.random() < 0.3;
         const canvas = pick(dark ? DARK_CANVASES : LIGHT_CANVASES);
         if (dark) {
-          scene(canvas, shade(canvas, 0.045), pick([14, 16, 18]));
+          scene({
+            canvas,
+            fill: shade(canvas, 0.045),
+            radius: pick([14, 16, 18]),
+          });
           const roll = Math.random();
           if (roll < 0.3) {
             // glow — a single vivid hue ringing outward
@@ -2702,11 +2928,11 @@
           const ink = hslToHex(ch + rr(-25, 25), rr(0.15, 0.4), rr(0.12, 0.26));
           if (roll < 0.4) {
             // soft cascade
-            scene(
+            scene({
               canvas,
-              shade(canvas, rr(0.06, 0.14)),
-              pick([10, 14, 18, 22]),
-            );
+              fill: shade(canvas, rr(0.06, 0.14)),
+              radius: pick([10, 14, 18, 22]),
+            });
             S.layers = forge({
               n: Math.round(rr(3, 7)),
               reach: rr(14, 90),
@@ -2719,7 +2945,11 @@
           } else if (roll < 0.45) {
             // hard pop — like slice, the flat offset wants a diagonal sun
             S.light.a = (pick([45, 135, 225, 315]) + rr(-20, 20)) * DEG;
-            scene(canvas, shade(canvas, 0.16), pick([4, 6, 10]));
+            scene({
+              canvas,
+              fill: shade(canvas, 0.16),
+              radius: pick([4, 6, 10]),
+            });
             S.layers = [
               L({
                 dist: Math.round(rr(6, 14)),
@@ -2730,7 +2960,7 @@
             ];
           } else if (roll < 0.6) {
             // long shadow
-            scene(canvas, shade(canvas, 0.18), pick([6, 10]));
+            scene({ canvas, fill: shade(canvas, 0.18), radius: pick([6, 10]) });
             const c = shade(canvas, -0.22),
               n = Math.round(rr(12, 18)),
               out = [];
@@ -2749,7 +2979,7 @@
             // slice — hard double; the crop only reads well when the sun
             // sits at a diagonal, so keep it off the vertical/horizontal
             S.light.a = (pick([45, 135, 225, 315]) + rr(-20, 20)) * DEG;
-            scene(canvas, "#ffffff", pick([6, 10]));
+            scene({ canvas, fill: "#ffffff", radius: pick([6, 10]) });
             const g = Math.round(rr(5, 9));
             S.layers = [
               L({ dist: g, blur: 0, alpha: 1, color: canvas }),
@@ -2762,7 +2992,11 @@
             ];
           } else if (roll < 0.8) {
             // riso — two misregistered inks at fixed offsets
-            scene(canvas, shade(canvas, rr(0.05, 0.1)), pick([6, 8, 10]));
+            scene({
+              canvas,
+              fill: shade(canvas, rr(0.05, 0.1)),
+              radius: pick([6, 8, 10]),
+            });
             const h1 = rr(0, 360),
               a1 = rr(0, 360) * DEG,
               a2 = a1 + rr(1.6, 3.1),
@@ -2788,7 +3022,7 @@
             ];
           } else if (roll < 0.85) {
             // deck — opaque canvas-tinted sheets stacked straight down
-            scene(canvas, "#ffffff", pick([8, 10, 14]));
+            scene({ canvas, fill: "#ffffff", radius: pick([8, 10, 14]) });
             const g = Math.round(rr(8, 12)),
               s = Math.round(rr(4, 7));
             S.layers = [
@@ -2831,7 +3065,7 @@
             ];
           } else if (roll < 0.9) {
             // sonar — ink rings with canvas-colored gaps; needs the pill
-            scene(canvas, "#ffffff", 999);
+            scene({ canvas, fill: "#ffffff", radius: 999 });
             const w = Math.round(rr(4, 7)),
               rc = hslToHex(ch + rr(-30, 30), rr(0.4, 0.7), rr(0.22, 0.34));
             S.layers = [
@@ -2843,7 +3077,13 @@
             ];
           } else {
             // neumorph
-            scene(canvas, canvas, 28, pick(["convex", "flat"]));
+            scene({
+              canvas,
+              fill: canvas,
+              radius: 28,
+              finish: pick(["convex", "flat"]),
+              depth: Math.round(rr(5, 11)) / 100,
+            });
             const k = rr(0.1, 0.16),
               d = Math.round(rr(8, 16));
             S.layers = [
