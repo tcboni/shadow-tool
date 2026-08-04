@@ -66,8 +66,13 @@
         cursor: pointer;
       }
       button:disabled {
-        opacity: 0.3;
         cursor: default;
+      }
+      button:disabled > * {
+        opacity: 0.3;
+      }
+      .btn:disabled {
+        border-color: color-mix(in srgb, var(--line2) 30%, transparent);
       }
       :focus-visible {
         outline: 2px solid var(--amber2);
