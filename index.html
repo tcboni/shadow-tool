@@ -451,15 +451,11 @@
         text-transform: uppercase;
         color: var(--dim);
       }
-      .readout {
-        font: 11.5px var(--mono);
-        color: var(--mut);
+      .stagebtns {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         margin-left: auto;
-        white-space: nowrap;
-      }
-      .readout b {
-        color: var(--amber);
-        font-weight: 600;
       }
       #inText {
         width: 110px;
@@ -629,7 +625,7 @@
         vertical-align: baseline;
         outline: 1px solid rgba(255, 255, 255, 0.18);
       }
-      #bShare {
+      #bCopy {
         margin-left: auto;
       }
       #toast {
@@ -851,10 +847,6 @@
         .stage {
           height: min(60vw, 440px);
         }
-        .readout {
-          width: 100%;
-          margin-left: 0;
-        }
       }
       @media (prefers-reduced-motion: reduce) {
         * {
@@ -886,10 +878,8 @@
         <div class="topbtns">
           <button
             class="btn tip"
-            id="bUndo"
-            data-tip="undo (⌘Z)"
-            aria-label="Undo"
-            disabled
+            id="bShare"
+            data-tip="Copy a shareable link with this shadow encoded in it"
           >
             <svg
               width="13"
@@ -897,64 +887,23 @@
               viewBox="0 0 16 16"
               fill="none"
               stroke="currentColor"
-              stroke-width="1.6"
+              stroke-width="1.5"
               stroke-linecap="round"
               stroke-linejoin="round"
               aria-hidden="true"
             >
-              <path d="M6.5 3.5L3 7l3.5 3.5" />
-              <path d="M3 7h6a4 4 0 0 1 0 8H7" />
-            </svg>
-          </button>
-          <button
-            class="btn tip"
-            id="bRedo"
-            data-tip="redo (⇧⌘Z)"
-            aria-label="Redo"
-            disabled
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9.5 3.5L13 7l-3.5 3.5" />
-              <path d="M13 7H7a4 4 0 0 0 0 8h2" />
-            </svg>
-          </button>
-          <button class="btn tip" id="bRandom" data-tip="random shadow (R)">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <rect
-                x="1"
-                y="1"
-                width="14"
-                height="14"
-                rx="3"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.6"
+              <path
+                d="M6.7 8.7a3.3 3.3 0 0 0 5 .3l2-2a3.3 3.3 0 0 0-4.7-4.7L7.9 3.4"
               />
-              <circle cx="5.2" cy="5.2" r="1.5" />
-              <circle cx="8" cy="8" r="1.5" />
-              <circle cx="10.8" cy="10.8" r="1.5" />
+              <path
+                d="M9.3 7.3a3.3 3.3 0 0 0-5-.3l-2 2a3.3 3.3 0 0 0 4.7 4.7l1.1-1.1"
+              />
             </svg>
-            Random
+            Share
           </button>
           <a
             class="gh tip"
-            data-tip="source on github"
+            data-tip="Source on GitHub"
             href="https://github.com/tcboni/shadow-tool"
             target="_blank"
             rel="noopener"
@@ -991,9 +940,76 @@
               value="#e8e2d4"
               aria-label="Stage background color"
             />
-            <span class="readout" id="readLight"
-              >☀ <b>225°</b> · elev <b>50%</b> · throw ×<b>1.0</b></span
-            >
+            <div class="stagebtns">
+              <button
+                class="btn tip"
+                id="bUndo"
+                data-tip="Undo (⌘Z)"
+                aria-label="Undo"
+                disabled
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6.5 3.5L3 7l3.5 3.5" />
+                  <path d="M3 7h6a4 4 0 0 1 0 8H7" />
+                </svg>
+              </button>
+              <button
+                class="btn tip"
+                id="bRedo"
+                data-tip="Redo (⇧⌘Z)"
+                aria-label="Redo"
+                disabled
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M9.5 3.5L13 7l-3.5 3.5" />
+                  <path d="M13 7H7a4 4 0 0 0 0 8h2" />
+                </svg>
+              </button>
+              <button class="btn tip" id="bRandom" data-tip="Random shadow (R)">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <rect
+                    x="1"
+                    y="1"
+                    width="14"
+                    height="14"
+                    rx="3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                  />
+                  <circle cx="5.2" cy="5.2" r="1.5" />
+                  <circle cx="8" cy="8" r="1.5" />
+                  <circle cx="10.8" cy="10.8" r="1.5" />
+                </svg>
+                Random
+              </button>
+            </div>
           </div>
 
           <div
@@ -1052,7 +1068,7 @@
                 <button
                   class="otab tip"
                   data-fmt="css"
-                  data-tip="plain css, ready to paste"
+                  data-tip="Plain CSS, ready to paste"
                   aria-pressed="true"
                 >
                   CSS
@@ -1060,7 +1076,7 @@
                 <button
                   class="otab tip"
                   data-fmt="var"
-                  data-tip="as a custom property + usage"
+                  data-tip="As a custom property + usage"
                   aria-pressed="false"
                 >
                   Custom prop
@@ -1068,38 +1084,13 @@
                 <button
                   class="otab tip"
                   data-fmt="tw"
-                  data-tip="tailwind arbitrary-value class"
+                  data-tip="Tailwind arbitrary-value class"
                   aria-pressed="false"
                 >
                   Tailwind
                 </button>
               </div>
-              <button
-                class="btn tip"
-                id="bShare"
-                data-tip="copy a shareable link with this shadow encoded in it"
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M6.7 8.7a3.3 3.3 0 0 0 5 .3l2-2a3.3 3.3 0 0 0-4.7-4.7L7.9 3.4"
-                  />
-                  <path
-                    d="M9.3 7.3a3.3 3.3 0 0 0-5-.3l-2 2a3.3 3.3 0 0 0 4.7 4.7l1.1-1.1"
-                  />
-                </svg>
-                Share link
-              </button>
-              <button class="btn tip" id="bCopy" data-tip="copy to clipboard">
+              <button class="btn tip" id="bCopy" data-tip="Copy to clipboard">
                 <svg
                   width="13"
                   height="13"
@@ -1129,7 +1120,7 @@
               <button
                 class="knob tip"
                 id="knob"
-                data-tip="the direction the light comes from — drag to rotate, arrow keys to nudge (shift = fine)"
+                data-tip="The direction the light comes from — drag to rotate, arrow keys to nudge (Shift = fine)"
                 role="slider"
                 aria-label="Light angle"
                 aria-valuemin="0"
@@ -1163,7 +1154,7 @@
                 </div>
                 <label
                   class="ctl tip"
-                  data-tip="how high the sun sits — 100% is high noon, shadows tuck underneath"
+                  data-tip="How high the sun sits — 100% is high noon, shadows tuck underneath"
                 >
                   <span class="ck"
                     ><span>Elevation</span><output id="vElev">50%</output></span
@@ -1194,7 +1185,7 @@
             <div
               class="inline tip"
               id="rowFollow"
-              data-tip="light: this layer follows the sun; manual: fixed x / y offsets you set by hand"
+              data-tip="Light: this layer follows the sun; Manual: fixed x / y offsets you set by hand"
             >
               <span class="ck grow"><span>Offset</span></span>
               <div class="seg" role="group" aria-label="Offset mode">
@@ -1205,7 +1196,7 @@
             <label
               class="ctl tip"
               id="rowDist"
-              data-tip="how far this layer travels along the light axis — negative creeps toward the light"
+              data-tip="How far this layer travels along the light axis — negative creeps toward the light"
             >
               <span class="ck"
                 ><span>Distance</span><output id="vLDist">24px</output></span
@@ -1261,7 +1252,7 @@
             <label
               class="ctl tip"
               id="rowSpread"
-              data-tip="grows or shrinks the shadow before blurring — negative tucks it under the subject"
+              data-tip="Grows or shrinks the shadow before blurring — negative tucks it under the subject"
             >
               <span class="ck"
                 ><span>Spread</span><output id="vLSpread">0px</output></span
@@ -1311,7 +1302,7 @@
             <div
               class="inline tip"
               id="rowInset"
-              data-tip="inset draws the shadow inside the subject instead of outside it"
+              data-tip="Inset draws the shadow inside the subject instead of outside it"
             >
               <span class="ck grow"><span>Placement</span></span>
               <div class="seg" role="group" aria-label="Shadow placement">
@@ -1346,7 +1337,7 @@
             <div
               class="inline tip"
               id="rowFinish"
-              data-tip="a subtle surface gradient that stays lit toward the sun"
+              data-tip="A subtle surface gradient that stays lit toward the sun"
             >
               <span class="ck grow"><span>Finish</span></span>
               <div class="seg" role="group" aria-label="Surface finish">
@@ -1362,7 +1353,7 @@
             <label
               class="ctl tip"
               id="rowDepth"
-              data-tip="how strongly the surface curves — the span of the gradient"
+              data-tip="How strongly the surface curves — the span of the gradient"
             >
               <span class="ck"
                 ><span>Depth</span><output id="vDepth">7%</output></span
@@ -1379,7 +1370,7 @@
             <div
               class="inline tip"
               id="rowPill"
-              data-tip="pill rounds the corners as far as they'll go"
+              data-tip="Pill rounds the corners as far as they'll go"
             >
               <span class="ck grow"><span>Corners</span></span>
               <div class="seg" role="group" aria-label="Corner style">
@@ -1400,32 +1391,6 @@
                 aria-label="Corner radius"
               />
             </label>
-            <label class="ctl" id="rowW">
-              <span class="ck"
-                ><span>Width</span><output id="vW">260px</output></span
-              >
-              <input
-                type="range"
-                id="inW"
-                min="80"
-                max="380"
-                step="2"
-                aria-label="Subject width"
-              />
-            </label>
-            <label class="ctl" id="rowH">
-              <span class="ck"
-                ><span>Height</span><output id="vH">160px</output></span
-              >
-              <input
-                type="range"
-                id="inH"
-                min="60"
-                max="280"
-                step="2"
-                aria-label="Subject height"
-              />
-            </label>
             <div class="inline" id="rowShape">
               <span class="ck grow"><span>Shape</span></span>
               <div class="seg" role="group" aria-label="Preview shape">
@@ -1435,19 +1400,6 @@
                 <button data-shape="ring" aria-pressed="false">ring</button>
               </div>
             </div>
-            <label class="ctl" id="rowSize">
-              <span class="ck"
-                ><span>Size</span><output id="vSize">260px</output></span
-              >
-              <input
-                type="range"
-                id="inSize"
-                min="100"
-                max="300"
-                step="2"
-                aria-label="Shape size"
-              />
-            </label>
             <label class="ctl" id="rowText">
               <span class="ck"><span>Text</span></span>
               <input
@@ -1458,19 +1410,6 @@
                 spellcheck="false"
                 autocomplete="off"
                 aria-label="Preview text"
-              />
-            </label>
-            <label class="ctl" id="rowFont">
-              <span class="ck"
-                ><span>Font size</span><output id="vFont">92px</output></span
-              >
-              <input
-                type="range"
-                id="inFont"
-                min="24"
-                max="160"
-                step="1"
-                aria-label="Font size"
               />
             </label>
           </div>
@@ -1712,11 +1651,15 @@
       function outputText() {
         const m = S.mode,
           sc = S.scene;
+        // gradient ink is clipped to the glyphs — text-shadow would show
+        // through the transparent fill, so those exports ride drop-shadow()
+        const gradText = m === "text" && sc.finish !== "flat";
+        const lm = gradText ? "drop" : m; // how the layers are formatted
         const prop =
-          m === "box" ? "box-shadow" : m === "text" ? "text-shadow" : "filter";
-        const ls = activeLayers().map((l) => layerCss(l, m));
+          m === "box" ? "box-shadow" : lm === "drop" ? "filter" : "text-shadow";
+        const ls = activeLayers().map((l) => layerCss(l, lm));
         const joined = ls.length
-          ? "\n  " + ls.join(m === "drop" ? "\n  " : ",\n  ")
+          ? "\n  " + ls.join(lm === "drop" ? "\n  " : ",\n  ")
           : " none";
         // the subject's own declarations, so the paste reproduces the preview
         const surf =
@@ -1725,16 +1668,28 @@
                 `background: ${surfaceCss(sc)};`,
                 `border-radius: ${radiusCss(sc)};`,
               ]
-            : m === "text"
-              ? [`color: ${sc.fill};`]
-              : [];
+            : gradText
+              ? [
+                  `background: ${surfaceCss(sc)};`,
+                  "-webkit-background-clip: text;",
+                  "background-clip: text;",
+                  "color: transparent;",
+                ]
+              : m === "text"
+                ? [`color: ${sc.fill};`]
+                : [];
+        const note = gradText
+          ? "/* the gradient ink is clipped to the glyphs, so the shadow\n   rides filter: drop-shadow() instead of text-shadow */\n"
+          : "";
         if (S.fmt === "css")
           return (
-            (surf.length ? surf.join("\n") + "\n\n" : "") + `${prop}:${joined};`
+            note +
+            (surf.length ? surf.join("\n") + "\n\n" : "") +
+            `${prop}:${joined};`
           );
         if (S.fmt === "var") {
           const use = surf.map((s) => `  ${s}\n`).join("");
-          return `:root {\n  --shadow:${joined.replace(/\n/g, "\n  ")};\n}\n\n.your-element {\n${use}  ${prop}: var(--shadow);\n}`;
+          return `${note}:root {\n  --shadow:${joined.replace(/\n/g, "\n  ")};\n}\n\n.your-element {\n${use}  ${prop}: var(--shadow);\n}`;
         }
         // tailwind arbitrary value — underscores for spaces, hex8 colors
         const twSurf =
@@ -1745,22 +1700,24 @@
                 : sc.radius === 0
                   ? "rounded-none "
                   : `rounded-[${px(sc.radius)}] `)
-            : m === "text"
-              ? `text-[${sc.fill}] `
-              : "";
+            : gradText
+              ? `bg-[${surfaceCss(sc).replace(/\s+/g, "")}] bg-clip-text text-transparent `
+              : m === "text"
+                ? `text-[${sc.fill}] `
+                : "";
         const tls = activeLayers().map((l) => {
           const v = layerVec(l),
             c = hex8(l.color, l.alpha);
           const o = `${px(v.x)}_${px(v.y)}_${px(l.blur)}`;
-          if (m === "text") return `${o}_${c}`;
-          if (m === "drop") return `drop-shadow(${o}_${c})`;
+          if (lm === "text") return `${o}_${c}`;
+          if (lm === "drop") return `drop-shadow(${o}_${c})`;
           return `${l.inset ? "inset_" : ""}${o}_${px(l.spread)}_${c}`;
         });
         if (!tls.length)
           return m === "box" ? `${twSurf}shadow-none` : "/* no layers */";
         if (m === "box") return `${twSurf}shadow-[${tls.join(",")}]`;
-        if (m === "text") return `${twSurf}[text-shadow:${tls.join(",")}]`;
-        return `[filter:${tls.join("_")}]`;
+        if (lm === "text") return `${twSurf}[text-shadow:${tls.join(",")}]`;
+        return `${twSurf}[filter:${tls.join("_")}]`;
       }
       function highlight(src) {
         return esc(src)
@@ -2185,11 +2142,24 @@
           subject.textContent = sc.text || "Umbra";
           Object.assign(subject.style, {
             font: `700 ${sc.font}px/1.05 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif`,
-            color: sc.fill,
             letterSpacing: "-0.01em",
             textAlign: "center",
-            textShadow: val === "none" ? "none" : val,
           });
+          if (sc.finish === "flat") {
+            subject.style.color = sc.fill;
+            subject.style.textShadow = val === "none" ? "none" : val;
+          } else {
+            // gradient ink is clipped to the glyphs — text-shadow would show
+            // through the transparent fill, so the shadow rides drop-shadow()
+            const dval = shadowValue("drop");
+            Object.assign(subject.style, {
+              background: surfaceCss(sc),
+              webkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+              filter: dval === "none" ? "none" : dval,
+            });
+          }
         } else {
           const size = Math.round(sc.w * 0.8);
           subject.innerHTML =
@@ -2227,7 +2197,7 @@
                     : "Soft";
               const meta = `Layer ${i + 1} - ${kind} ${Math.round(l.alpha * 100)}%`;
               return `<div class="lrow${i === S.sel ? " sel" : ""}${l.on ? " on" : " hid"}" data-i="${i}">
-      <button class="ico eye tip" data-act="eye" data-i="${i}" data-tip="${l.on ? "hide" : "show"} layer" aria-label="${l.on ? "Hide" : "Show"} layer ${i + 1}" aria-pressed="${l.on}">${l.on ? I.eye : I.eyeOff}</button>
+      <button class="ico eye tip" data-act="eye" data-i="${i}" data-tip="${l.on ? "Hide" : "Show"} layer" aria-label="${l.on ? "Hide" : "Show"} layer ${i + 1}" aria-pressed="${l.on}">${l.on ? I.eye : I.eyeOff}</button>
       <button class="lbody" data-act="sel" data-i="${i}" aria-label="Select layer ${i + 1}${l.follow ? ", linked to light" : ""}">
         <span class="sw" style="background:${l.color}"></span>
         <span class="lm">${meta}</span>${l.follow ? '<span class="lsun" aria-hidden="true">☀</span>' : ""}
@@ -2235,8 +2205,8 @@
       <span class="lops">
         <button class="ico" data-act="up" data-i="${i}" aria-label="Move layer ${i + 1} up" ${i === 0 ? "disabled" : ""}>${I.up}</button>
         <button class="ico" data-act="down" data-i="${i}" aria-label="Move layer ${i + 1} down" ${i === S.layers.length - 1 ? "disabled" : ""}>${I.down}</button>
-        <button class="ico tip" data-act="dup" data-i="${i}" data-tip="duplicate" aria-label="Duplicate layer ${i + 1}">${I.dup}</button>
-        <button class="ico tip" data-act="del" data-i="${i}" data-tip="delete" aria-label="Delete layer ${i + 1}">${I.x}</button>
+        <button class="ico tip" data-act="dup" data-i="${i}" data-tip="Duplicate" aria-label="Duplicate layer ${i + 1}">${I.dup}</button>
+        <button class="ico tip" data-act="del" data-i="${i}" data-tip="Delete" aria-label="Delete layer ${i + 1}">${I.x}</button>
       </span>
     </div>`;
             })
@@ -2302,8 +2272,6 @@
         kb.setAttribute("aria-valuenow", az);
         kb.setAttribute("aria-valuetext", az + " degrees");
         setCtl("inElev", "vElev", elev, elev + "%");
-        $("readLight").innerHTML =
-          `☀ <b>${az}°</b> · elev <b>${elev}%</b> · throw ×<b>${Math.round(throwK() * 100) / 100}</b>`;
       }
       let favTimer = 0;
       function renderLogo() {
@@ -2355,20 +2323,12 @@
         const dpct = Math.round(sc.depth * 100);
         setCtl("inDepth", "vDepth", dpct, dpct + "%");
         setCtl("inRadius", "vRadius", sc.radius, px(sc.radius));
-        setCtl("inW", "vW", sc.w, px(sc.w));
-        setCtl("inH", "vH", sc.h, px(sc.h));
-        setCtl("inSize", "vSize", sc.w, px(sc.w));
-        setCtl("inFont", "vFont", sc.font, px(sc.font));
-        $("rowFinish").hidden = m !== "box";
-        $("rowDepth").hidden = m !== "box" || sc.finish === "flat";
+        $("rowFinish").hidden = m === "drop";
+        $("rowDepth").hidden = m === "drop" || sc.finish === "flat";
         $("rowPill").hidden = m !== "box";
         $("rowRadius").hidden = m !== "box" || pill;
-        $("rowW").hidden = m !== "box";
-        $("rowH").hidden = m !== "box";
         $("rowShape").hidden = m !== "drop";
-        $("rowSize").hidden = m !== "drop";
         $("rowText").hidden = m !== "text";
-        $("rowFont").hidden = m !== "text";
       }
       function renderModeUi() {
         document
@@ -2586,18 +2546,6 @@
       });
       onRange("inRadius", (v) => {
         S.scene.radius = v;
-      });
-      onRange("inW", (v) => {
-        S.scene.w = v;
-      });
-      onRange("inH", (v) => {
-        S.scene.h = v;
-      });
-      onRange("inSize", (v) => {
-        S.scene.w = v;
-      });
-      onRange("inFont", (v) => {
-        S.scene.font = v;
       });
       let prePill = 18; // radius to restore when pill is toggled back off
       $("bPillOn").addEventListener("click", () => {
